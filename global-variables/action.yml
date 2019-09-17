@@ -1,4 +1,4 @@
-name: 'global-var'
+name: 'global-variables'
 author: 'zweitag'
 description: 'Set global vars for all following build steps'
 inputs:
