@@ -2,24 +2,24 @@ name: global-variables
 on: push
 
 jobs:
-  test_local:
+  global-variables-local:
     name: global-variables-local
     runs-on: ubuntu-18.04
 
     steps:
     - name: checkout-repo
-      uses: actions/checkout
+      uses: actions/checkout@master
     - name: set-global-vars
       uses: ./global-variables
     - run: ./github/workflows/global-variables.sh
 
-  test_public:
+  global-variables-public:
     name: global-variables-public
     runs-on: ubuntu-18.04
 
     steps:
     - name: checkout-repo
-      uses: actions/checkout
+      uses: actions/checkout@master
     - name: set-global-vars
-      uses: zweitag/github-actions/global-variables
+      uses: zweitag/github-actions/global-variables@master
     - run: ./github/workflows/global-variables.sh
