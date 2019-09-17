@@ -1,0 +1,10 @@
+name: 'global-var'
+description: 'Set global vars for all following build steps'
+inputs:
+  file:
+    description: 'file with global vars'
+    required: false
+    default: '.github/workflows/.env.global'
+runs:
+  using: 'node12'
+  main: 'index.js'

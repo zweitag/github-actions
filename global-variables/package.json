@@ -1,0 +1,29 @@
+{
+  "name": "global-variables",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zweitag/github-actions.git"
+  },
+  "author": "Zweitag GmbH @zweitag",
+  "contributors": [
+    "Tobias Hoge <tbho@tbho.de>"
+  ],
+  "keywords": [
+    "zweitag",
+    "github",
+    "actions",
+    "global",
+    "environment"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zweitag/global-actions/issues"
+  },
+  "homepage": "https://github.com/zweitag/global-actions/global-variables#readme",
+  "dependencies": {
+    "@actions/core": "^1.1.0"
+  }
+}
