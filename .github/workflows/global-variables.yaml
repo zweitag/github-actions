@@ -11,7 +11,7 @@ jobs:
       uses: actions/checkout@master
     - name: set-global-vars
       uses: ./global-variables
-    - run: ./github/workflows/global-variables.sh
+    - run: ./.github/workflows/global-variables.sh
 
   global-variables-public:
     name: global-variables-public
@@ -22,4 +22,4 @@ jobs:
       uses: actions/checkout@master
     - name: set-global-vars
       uses: zweitag/github-actions/global-variables@master
-    - run: ./github/workflows/global-variables.sh
+    - run: ./.github/workflows/global-variables.sh
