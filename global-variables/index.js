@@ -18,15 +18,20 @@ const core = require('@actions/core');
 const fs = require('fs');
 
 try {
-  var file_name = core.getInput('file');
-  var file_content = fs.readFileSync(file_name, 'utf8')
-  file_rows = file_content.split("\n")
+  const file_name = core.getInput('file');
+  const file_content = fs.readFileSync(file_name, 'utf8')
+  const file_rows = file_content.split("\n")
+  // allow '=' within the value
+  const key_value_pattern = /(?<key>\S[^=]+)=(?<value>.+)/;
 
-  file_rows.forEach(function (row, index) {
+  file_rows.forEach(function (row) {
     row = row.trim();
     if (row && !row.startsWith('#')) {
-      global_var = row.split("=")
-      core.exportVariable(global_var[0], global_var[1]);
+      const key_value_match = row.match(key_value_pattern);
+      if (key_value_match) {
+        const {key, value} = match.groups;
+        core.exportVariable(key, value);
+      }
     }
   });
 } catch (error) {
