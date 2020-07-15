@@ -29,7 +29,7 @@ try {
     if (row && !row.startsWith('#')) {
       const key_value_match = row.match(key_value_pattern);
       if (key_value_match) {
-        const {key, value} = match.groups;
+        const {key, value} = key_value_match.groups;
         core.exportVariable(key, value);
       }
     }
