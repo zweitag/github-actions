@@ -5046,8 +5046,7 @@ function run() {
             const link = core.getInput("link", { required: false });
             const statusUpdateData = yield update_status_1.updateStatus(status, {
                 environment: environment,
-                log_url: link,
-                target_url: link,
+                log_url: logUrl,
                 environment_url: link,
                 owner: context.repo.owner,
                 ref: ref,
