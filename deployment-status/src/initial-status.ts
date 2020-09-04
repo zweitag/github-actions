@@ -11,7 +11,7 @@ async function run() {
   try {
     const context = github.context;
     const token = core.getInput("token", { required: true });
-    const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/runs/${context.runId}`;
+    const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
     const status =
       (core.getInput("initial_status", {
         required: false,
