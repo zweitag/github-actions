@@ -27,7 +27,7 @@ async function run() {
 
     const statusUpdateData = await updateStatus(status, {
       environment: environment,
-      log_url: logUrl,
+      target_url: logUrl,
       environment_url: environmentUrl,
       owner: context.repo.owner,
       ref: ref,

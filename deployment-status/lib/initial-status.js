@@ -50,7 +50,7 @@ function run() {
             });
             const statusUpdateData = yield update_status_1.updateStatus(status, {
                 environment: environment,
-                log_url: logUrl,
+                target_url: logUrl,
                 environment_url: environmentUrl,
                 owner: context.repo.owner,
                 ref: ref,
