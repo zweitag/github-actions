@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: deployment-status
+      - uses: ./deployment-status/
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           environment_url: https://my.environment.local
