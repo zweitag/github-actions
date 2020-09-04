@@ -20,6 +20,6 @@ outputs:
     description: "The ID of the created deployment"
 runs:
   using: "node12"
-  main: "dist/index.js"
-  post: "dist/final-status.js"
+  main: "dist/initial-status/index.js"
+  post: "dist/final-status/index.js"
   post-if: "success()"

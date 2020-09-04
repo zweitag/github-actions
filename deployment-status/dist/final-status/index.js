@@ -1,4 +1,4 @@
-require('./sourcemap-register.js');module.exports =
+module.exports =
 /******/ (function(modules, runtime) { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	// The module cache
@@ -40,7 +40,7 @@ require('./sourcemap-register.js');module.exports =
 /******/ 	// the startup function
 /******/ 	function startup() {
 /******/ 		// Load entry module and return exports
-/******/ 		return __webpack_require__(109);
+/******/ 		return __webpack_require__(647);
 /******/ 	};
 /******/
 /******/ 	// run startup
@@ -1380,75 +1380,6 @@ module.exports = require("os");
 
 /***/ }),
 
-/***/ 109:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(186));
-const github = __importStar(__webpack_require__(438));
-const update_status_1 = __webpack_require__(843);
-const constats_1 = __webpack_require__(355);
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const context = github.context;
-            const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}/checks`;
-            const status = core.getInput("initial_status", { required: false }) ||
-                "pending";
-            const statusUpdateData = yield update_status_1.updateStatus(status, {
-                token: core.getInput("token", { required: true }),
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.sha,
-                ref: context.ref,
-                log_url: logUrl,
-                environment_url: core.getInput("environment_url", { required: false }) || logUrl,
-                target_url: logUrl,
-            });
-            core.saveState(constats_1.State.StatusUpdateData, statusUpdateData);
-            core.setOutput("deployment_id", statusUpdateData.deployment_id);
-        }
-        catch (error) {
-            core.error(error);
-            core.setFailed(error.message);
-        }
-    });
-}
-run();
-
-
-/***/ }),
-
 /***/ 186:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -2300,6 +2231,64 @@ exports.request = request;
 
 /***/ }),
 
+/***/ 241:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateStatus = void 0;
+const github = __importStar(__webpack_require__(438));
+exports.updateStatus = (status, data) => __awaiter(void 0, void 0, void 0, function* () {
+    const client = github.getOctokit(data.token);
+    var deployment_id;
+    if (!data.deployment_id) {
+        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, data), { required_contexts: [], transient_environment: true }));
+        if ("id" in deployment.data) {
+            deployment_id = deployment.data.id;
+        }
+        else {
+            throw ("Deployment could not be created: " + JSON.stringify(deployment.data));
+        }
+    }
+    else {
+        deployment_id = data.deployment_id;
+    }
+    yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, data), { deployment_id: deployment_id, state: status }));
+    return Object.assign(Object.assign({}, data), { deployment_id: deployment_id });
+});
+
+
+/***/ }),
+
 /***/ 294:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -2461,21 +2450,6 @@ function escapeProperty(s) {
         .replace(/,/g, '%2C');
 }
 //# sourceMappingURL=command.js.map
-
-/***/ }),
-
-/***/ 355:
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.State = void 0;
-var State;
-(function (State) {
-    State["StatusUpdateData"] = "STATUS_UPDATE_DATA";
-})(State = exports.State || (exports.State = {}));
-
 
 /***/ }),
 
@@ -4809,6 +4783,54 @@ module.exports = require("net");
 
 /***/ }),
 
+/***/ 647:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const core = __importStar(__webpack_require__(186));
+const update_status_1 = __webpack_require__(241);
+const constats_1 = __webpack_require__(756);
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const statusUpdateData = JSON.parse(core.getState(constats_1.State.StatusUpdateData));
+        yield update_status_1.updateStatus("success", statusUpdateData);
+    });
+}
+run();
+
+
+/***/ }),
+
 /***/ 668:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -5022,6 +5044,21 @@ module.exports.Collection = Hook.Collection
 /***/ (function(module) {
 
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 756:
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.State = void 0;
+var State;
+(function (State) {
+    State["StatusUpdateData"] = "STATUS_UPDATE_DATA";
+})(State = exports.State || (exports.State = {}));
+
 
 /***/ }),
 
@@ -5244,64 +5281,6 @@ function removeHook (state, name, method) {
 /***/ (function(module) {
 
 module.exports = require("url");
-
-/***/ }),
-
-/***/ 843:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateStatus = void 0;
-const github = __importStar(__webpack_require__(438));
-exports.updateStatus = (status, data) => __awaiter(void 0, void 0, void 0, function* () {
-    const client = github.getOctokit(data.token);
-    var deployment_id;
-    if (!data.deployment_id) {
-        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, data), { required_contexts: [], transient_environment: true }));
-        if ("id" in deployment.data) {
-            deployment_id = deployment.data.id;
-        }
-        else {
-            throw ("Deployment could not be created: " + JSON.stringify(deployment.data));
-        }
-    }
-    else {
-        deployment_id = data.deployment_id;
-    }
-    yield client.repos.createDeploymentStatus(Object.assign(Object.assign({}, data), { deployment_id: deployment_id, state: status }));
-    return Object.assign(Object.assign({}, data), { deployment_id: deployment_id });
-});
-
 
 /***/ }),
 
@@ -6015,4 +5994,3 @@ function wrappy (fn, cb) {
 /***/ })
 
 /******/ });
-//# sourceMappingURL=index.js.map

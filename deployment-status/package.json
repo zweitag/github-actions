@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "description": "Creates a GitHub Deployment Status",
   "private": true,
-  "main": "lib/main.js",
+  "main": "lib/initial-status.js",
   "scripts": {
     "build": "tsc",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
-    "package": "ncc build --source-map --license licenses.txt",
+    "package": "ncc build -o dist/initial-status src/initial-status.ts && ncc build -o dist/final-status src/final-status.ts",
     "test": "jest",
     "all": "npm run build && npm run format && npm run package && npm test"
   },
