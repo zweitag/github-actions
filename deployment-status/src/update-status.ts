@@ -15,6 +15,8 @@ export interface StatusUpdateData {
   deployment_id?: number;
   environment: DeploymentEnvironment;
   log_url: string;
+  target_url: string;
+  environment_url: string;
   owner: string;
   ref: string;
   repo: string;

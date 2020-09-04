@@ -37,7 +37,7 @@ function run() {
         try {
             const context = github.context;
             const token = core.getInput("token", { required: true });
-            const defaultLogUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}/checks`;
+            const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}/checks`;
             const status = core.getInput("initial_status", {
                 required: false,
             }) || "pending";
@@ -45,15 +45,17 @@ function run() {
                 required: false,
             }) || "production";
             const ref = core.getInput("ref", { required: false }) || context.ref;
-            const logUrl = core.getInput("link", { required: false }) || defaultLogUrl;
+            const link = core.getInput("link", { required: false });
             const statusUpdateData = yield update_status_1.updateStatus(status, {
                 environment: environment,
-                log_url: logUrl,
+                log_url: link,
+                target_url: link,
+                environment_url: link,
                 owner: context.repo.owner,
                 ref: ref,
                 repo: context.repo.repo,
                 sha: context.sha,
-                token: token
+                token: token,
             });
             core.saveState(constats_1.State.StatusUpdateData, statusUpdateData);
             core.setOutput("deployment_id", statusUpdateData.deployment_id);
