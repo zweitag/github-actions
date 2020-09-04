@@ -23,3 +23,5 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           environment_url: https://my.environment.local
+          ref: ${{ github.head_ref }}
+          environment: qa
