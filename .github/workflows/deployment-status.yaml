@@ -22,6 +22,6 @@ jobs:
       - uses: ./deployment-status/
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          environment_url: https://my.environment.local
+          link: https://my.environment.de
           ref: ${{ github.head_ref }}
           environment: qa

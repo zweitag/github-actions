@@ -12,16 +12,14 @@ export type DeploymentState =
 export type DeploymentEnvironment = "production" | "staging" | "qa" | undefined;
 
 export interface StatusUpdateData {
-  token: string;
-  owner: string;
-  repo: string;
-  ref: string;
-  sha: string;
-  log_url: string;
-  target_url: string;
-  environment: DeploymentEnvironment;
-  environment_url: string;
   deployment_id?: number;
+  environment: DeploymentEnvironment;
+  log_url: string;
+  owner: string;
+  ref: string;
+  repo: string;
+  sha: string;
+  token: string;
 }
 
 export const updateStatus = async (
