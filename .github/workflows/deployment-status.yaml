@@ -10,15 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
-          npm install
-      - run: |
-          npm run all
+      - run: npm install
+        working-directory: deployment-status
+      - run: npm run all
+        working-directory: deployment-status
+
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./deployment-status/
+      - uses: deployment-status
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           environment_url: https://my.environment.local

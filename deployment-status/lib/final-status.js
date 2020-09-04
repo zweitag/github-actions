@@ -29,33 +29,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
-const github = __importStar(require("@actions/github"));
 const update_status_1 = require("./update-status");
 const constats_1 = require("./constats");
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const context = github.context;
-            const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}/checks`;
-            const status = core.getInput("initial_status", { required: false }) ||
-                "pending";
-            const statusUpdateData = yield update_status_1.updateStatus(status, {
-                token: core.getInput("token", { required: true }),
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.sha,
-                ref: context.ref,
-                log_url: logUrl,
-                environment_url: core.getInput("environment_url", { required: false }) || logUrl,
-                target_url: logUrl,
-            });
-            core.saveState(constats_1.State.StatusUpdateData, statusUpdateData);
-            core.setOutput("deployment_id", statusUpdateData.deployment_id);
-        }
-        catch (error) {
-            core.error(error);
-            core.setFailed(error.message);
-        }
+        const statusUpdateData = JSON.parse(core.getState(constats_1.State.StatusUpdateData));
+        yield update_status_1.updateStatus("success", statusUpdateData);
     });
 }
 run();

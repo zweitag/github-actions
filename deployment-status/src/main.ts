@@ -17,8 +17,9 @@ async function run() {
     const context = github.context;
     const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}/checks`;
     const status =
-      (core.getInput("initial_status", { required: false }) as DeploymentState) ||
-      "pending";
+      (core.getInput("initial_status", {
+        required: false,
+      }) as DeploymentState) || "pending";
 
     const statusUpdateData = await updateStatus(status, {
       token: core.getInput("token", { required: true }),

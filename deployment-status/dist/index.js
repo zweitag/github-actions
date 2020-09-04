@@ -1423,7 +1423,7 @@ function run() {
         try {
             const context = github.context;
             const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}/checks`;
-            const status = core.getInput("status", { required: false }) ||
+            const status = core.getInput("initial_status", { required: false }) ||
                 "pending";
             const statusUpdateData = yield update_status_1.updateStatus(status, {
                 token: core.getInput("token", { required: true }),
@@ -1433,7 +1433,7 @@ function run() {
                 ref: context.ref,
                 log_url: logUrl,
                 environment_url: core.getInput("environment_url", { required: false }) || logUrl,
-                target_url: logUrl
+                target_url: logUrl,
             });
             core.saveState(constats_1.State.StatusUpdateData, statusUpdateData);
             core.setOutput("deployment_id", statusUpdateData.deployment_id);
