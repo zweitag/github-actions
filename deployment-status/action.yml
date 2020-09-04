@@ -1,0 +1,32 @@
+name: "Deployment Status Action"
+description: "Creates a GitHub Deployment with URL"
+author: "zweitag"
+branding:
+  icon: arrow-up
+  color: black
+inputs:
+  token:
+    description: "Github repository token"
+    required: true
+  environment:
+    description: "Name of the environment, e.g. production, staging, qa"
+    default: production
+    required: false
+  environment_url:
+    description: "URL to the deployed environment"
+    required: false
+  ref:
+    description: "Reference, e.g. a branch, tag or sha"
+    required: false
+  initial_status:
+    description: "The initial status when creating the deployment"
+    default: "pending"
+    required: false
+outputs:
+  deployment_id:
+    description: "The ID of the created deployment"
+runs:
+  using: "node12"
+  main: "dist/initial-status/index.js"
+  post: "dist/final-status/index.js"
+  post-if: "success()"
