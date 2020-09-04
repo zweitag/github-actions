@@ -11,7 +11,7 @@ async function run() {
   try {
     const context = github.context;
     const token = core.getInput("token", { required: true });
-    const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}/checks`;
+    const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/runs/${context.runId}`;
     const status =
       (core.getInput("initial_status", {
         required: false,
@@ -21,12 +21,14 @@ async function run() {
         required: false,
       }) as DeploymentEnvironment) || "production";
     const ref = core.getInput("ref", { required: false }) || context.ref;
-    const link = core.getInput("link", { required: false });
+    const environmentUrl = core.getInput("environment_url", {
+      required: false,
+    });
 
     const statusUpdateData = await updateStatus(status, {
       environment: environment,
       log_url: logUrl,
-      environment_url: link,
+      environment_url: environmentUrl,
       owner: context.repo.owner,
       ref: ref,
       repo: context.repo.repo,

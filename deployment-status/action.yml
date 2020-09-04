@@ -12,7 +12,7 @@ inputs:
     description: "Name of the environment, e.g. production, staging, qa"
     default: production
     required: false
-  link:
+  environment_url:
     description: "URL to the deployed environment"
     required: false
   ref:
