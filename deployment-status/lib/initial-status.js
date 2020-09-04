@@ -40,14 +40,18 @@ function run() {
             const status = core.getInput("initial_status", {
                 required: false,
             }) || "pending";
+            const environment = core.getInput("environment", { required: false }) || "production";
+            const ref = core.getInput("ref", { required: false }) || context.ref;
+            const environment_url = core.getInput("environment_url", { required: false }) || logUrl;
             const statusUpdateData = yield update_status_1.updateStatus(status, {
                 token: core.getInput("token", { required: true }),
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 sha: context.sha,
-                ref: context.ref,
+                ref: ref,
                 log_url: logUrl,
-                environment_url: core.getInput("environment_url", { required: false }) || logUrl,
+                environment: environment,
+                environment_url: environment_url,
                 target_url: logUrl,
             });
             core.saveState(constats_1.State.StatusUpdateData, statusUpdateData);

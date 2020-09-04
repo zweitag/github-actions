@@ -8,8 +8,15 @@ inputs:
   token:
     description: "Github repository token"
     required: true
+  environment:
+    description: "Name of the environment, e.g. production, staging, qa"
+    default: production
+    required: false
   environment_url:
     description: "URL to the deployed environment"
+    required: false
+  ref:
+    description: "Reference, e.g. a branch, tag or sha"
     required: false
   initial_status:
     description: "The initial status when creating the deployment"

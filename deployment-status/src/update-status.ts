@@ -1,4 +1,3 @@
-import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 export type DeploymentState =
@@ -10,6 +9,8 @@ export type DeploymentState =
   | "pending"
   | "success";
 
+export type DeploymentEnvironment = "production" | "staging" | "qa" | undefined;
+
 export interface StatusUpdateData {
   token: string;
   owner: string;
@@ -18,6 +19,7 @@ export interface StatusUpdateData {
   sha: string;
   log_url: string;
   target_url: string;
+  environment: DeploymentEnvironment;
   environment_url: string;
   deployment_id?: number;
 }
