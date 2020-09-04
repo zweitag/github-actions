@@ -20,5 +20,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ./deployment-status/
         with:
-          token: "${{ secret.GITHUB_TOKEN }}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
           environment_url: https://my.environment.local
