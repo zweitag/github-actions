@@ -34,6 +34,7 @@ export const updateStatus = async (
   if (!data.deployment_id) {
     const deployment = await client.repos.createDeployment({
       ...data,
+      auto_merge: false,
       required_contexts: [],
       transient_environment: true,
     });

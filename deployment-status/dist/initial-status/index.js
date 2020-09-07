@@ -2271,7 +2271,7 @@ exports.updateStatus = (status, data) => __awaiter(void 0, void 0, void 0, funct
     const client = github.getOctokit(data.token);
     var deployment_id;
     if (!data.deployment_id) {
-        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, data), { required_contexts: [], transient_environment: true }));
+        const deployment = yield client.repos.createDeployment(Object.assign(Object.assign({}, data), { auto_merge: false, required_contexts: [], transient_environment: true }));
         if ("id" in deployment.data) {
             deployment_id = deployment.data.id;
         }
