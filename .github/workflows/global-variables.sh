@@ -18,3 +18,8 @@ if [ $TEST != "TEST123" ]
   then
     exit 1
 fi
+
+if [ $TEST2 != "https://test.de?URL=test.de" ]
+  then
+    exit 1
+fi
