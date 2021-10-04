@@ -24,6 +24,6 @@
   },
   "homepage": "https://github.com/zweitag/global-actions/global-variables#readme",
   "dependencies": {
-    "@actions/core": "^1.2.6"
+    "@actions/core": "^1.6.0"
   }
 }
