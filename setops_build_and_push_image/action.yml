@@ -1,0 +1,95 @@
+name: "Build and push image to setops registry"
+description: "Builds the docker images and pushes it to the setops registry while creating a tag for each stage / app combination"
+
+inputs:
+  setops_organization:
+    description: The setops organization, defaults to zweitag
+    required: false
+    default: zweitag
+  setops_host:
+    description: The setops host, defaults to api.setops.co
+    required: false
+    default: api.setops.co
+  setops_project:
+    description: The setops project name
+    required: true
+  setops_username:
+    description: The setops username, usually obtained via secrets.SETOPS_USER
+    required: true
+  setops_password:
+    description: The setops password, usually obtained via secrets.SETOPS_PASSWORD
+    required: true
+  stages:
+    description: List of stages in JSON format, e.g. '["production" ,"demo"]'
+    required: true
+  apps:
+    description: List of apps in JSON format, e.g. '["web", "clock", "worker"]'
+    required: true
+
+outputs:
+  image_digest:
+    value: ${{ steps.build_app.outputs.digest }}
+    description: The digest of the image that can be referred to when creating releases
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Detect setops target tag_names"
+      id: build_tag_names
+      run: |
+        declare -a tag_names
+        for stage in $(echo '${{ inputs.stages }}' | jq -r '.[]'); do
+          for app in $(echo '${{ inputs.apps }}' | jq -r '.[]'); do
+            tag_names+=("${{ inputs.setops_host }}/${{ inputs.setops_organization }}/${{ inputs.setops_project }}/$stage/$app:latest")
+          done
+        done
+
+        # https://stackoverflow.com/a/2317171
+        concatenated_tag_names=$(printf ",%s" "${tag_names[@]}")
+        concatenated_tag_names=${concatenated_tag_names:1}
+
+        echo "::set-output name=concatenated_tag_names::$concatenated_tag_names"
+      shell: bash
+    - name: "Set up Docker Buildx"
+      uses: docker/setup-buildx-action@v1
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+    - name: "Install Setops"
+      uses: setopsco/setup-setops@v3
+      with:
+        setops_organization: ${{ inputs.setops_organization }}
+        setops_username: ${{ inputs.setops_username }}
+        setops_password: ${{ inputs.setops_password }}
+    - name: "Login to SetOps registry"
+      run: |
+        LOGIN_COMMAND=$(setops registry:login | grep printf)
+        eval $LOGIN_COMMAND
+      shell: bash
+    - name: "Set git revision"
+      run: |
+        echo "commit_sha=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+      shell: bash
+    - name: Build and push app
+      id: build_app
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.build_tag_names.outputs.concatenated_tag_names }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new
+        no-cache: ${{ github.event_name == 'schedule' }}
+        build-args: COMMIT_SHA=${{env.commit_sha}}
+    # Temp fix
+    # https://github.com/docker/build-push-action/issues/252
+    # https://github.com/moby/buildkit/issues/1896
+    - name: Move cache
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      shell: bash
