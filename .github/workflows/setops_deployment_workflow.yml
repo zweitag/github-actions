@@ -1,0 +1,77 @@
+name: Setops Deployment
+on:
+  workflow_call:
+    inputs:
+      stages:
+        required: true
+        type: string
+      apps:
+        required: true
+        type: string
+      setops_organization:
+        description: The setops organization, defaults to zweitag
+        required: false
+        default: zweitag
+        type: string
+      setops_host:
+        description: The setops host, defaults to api.setops.co
+        required: false
+        default: api.setops.co
+        type: string
+      setops_project:
+        required: true
+        type: string
+      predeploy_command:
+        required: true
+        type: string
+    secrets:
+      SETOPS_USER:
+        required: true
+      SETOPS_PASSWORD:
+        required: true
+
+jobs:
+  build:
+    name: Build and push image
+    runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.build_and_push_image.outputs.image_digest }}
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v2
+      - name: "Build image and push it to setops image registry"
+        id: build_and_push_image
+        uses: zweitag/github-actions/setops_build_and_push_image@setops
+        with:
+          stages: ${{ inputs.stages }}
+          apps: ${{ inputs.apps }}
+          setops_username: ${{ secrets.SETOPS_USER }}
+          setops_password: ${{ secrets.SETOPS_PASSWORD }}
+          setops_project: ${{ inputs.setops_project }}
+          setops_host: ${{ inputs.setops_host }}
+          setops_organization: ${{ inputs.setops_organization }}
+
+  deploy:
+    name: Setops Deployment
+    strategy:
+      fail-fast: false
+      matrix:
+        stage: ${{ fromJson(inputs.stages) }}
+    concurrency: setops-deployment-${{ github.ref }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v2
+      - name: "Deploy fillibri_web on setops"
+        id: deploy
+        uses: zweitag/github-actions/setops_deployment@setops
+        with:
+          stage: ${{ matrix.stage }}
+          apps: ${{ inputs.apps }}
+          setops_project: ${{ inputs.setops_project }}
+          setops_username: ${{ secrets.SETOPS_USER }}
+          setops_password: ${{ secrets.SETOPS_PASSWORD }}
+          image_digest: ${{ needs.build.outputs.image_digest }}
+          predeploy_command: ${{ inputs.predeploy_command }}
+          setops_organization: ${{ inputs.setops_organization }}
