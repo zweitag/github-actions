@@ -24,6 +24,11 @@ on:
       predeploy_command:
         required: true
         type: string
+      build_context:
+        description: The build context / directory where the Dockerfile is located, defaults to '.'
+        required: false
+        default: .
+        type: string
     secrets:
       SETOPS_USER:
         required: true
@@ -50,6 +55,7 @@ jobs:
           setops_project: ${{ inputs.setops_project }}
           setops_host: ${{ inputs.setops_host }}
           setops_organization: ${{ inputs.setops_organization }}
+          build_context: ${{ inputs.build_context }}
 
   deploy:
     name: Setops Deployment
