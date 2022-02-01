@@ -29,6 +29,10 @@ inputs:
     description: The build context / directory where the Dockerfile is located, defaults to '.'
     required: false
     default: .
+  build_cache_key_prefix:
+    description: The cache key used by docker buildx. The complete cache key is concatenated
+    required: false
+    default: app
 
 outputs:
   image_digest:
@@ -60,9 +64,9 @@ runs:
       uses: actions/cache@v2
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        key: ${{ runner.os }}-buildx-${{ inputs.build_cache_key_prefix }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-
+          ${{ runner.os }}-buildx-${{ inputs.build_cache_key_prefix }}-
     - name: "Install Setops"
       uses: setopsco/setup-setops@v3
       with:

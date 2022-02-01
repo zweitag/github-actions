@@ -29,6 +29,11 @@ on:
         required: false
         default: .
         type: string
+      build_cache_key_prefix:
+        description: The cache key used by docker buildx. The complete cache key is concatenated
+        required: false
+        default: app
+        type: string
     secrets:
       SETOPS_USER:
         required: true
@@ -56,6 +61,7 @@ jobs:
           setops_host: ${{ inputs.setops_host }}
           setops_organization: ${{ inputs.setops_organization }}
           build_context: ${{ inputs.build_context }}
+          build_cache_key_prefix: ${{ inputs.build_cache_key_prefix }}
 
   deploy:
     name: Setops Deployment
