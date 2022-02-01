@@ -25,6 +25,10 @@ inputs:
   apps:
     description: List of apps in JSON format, e.g. '["web", "clock", "worker"]'
     required: true
+  build_context:
+    description: The build context / directory where the Dockerfile is located, defaults to '.'
+    required: false
+    default: .
 
 outputs:
   image_digest:
@@ -78,7 +82,7 @@ runs:
       id: build_app
       uses: docker/build-push-action@v2
       with:
-        context: .
+        context: ${{ inputs.build_context }}
         push: true
         tags: ${{ steps.build_tag_names.outputs.concatenated_tag_names }}
         cache-from: type=local,src=/tmp/.buildx-cache
