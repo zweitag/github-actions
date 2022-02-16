@@ -75,7 +75,7 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v2
-      - name: "Deploy project on setops"
+      - name: "Deploy apps on setops"
         id: deploy
         uses: zweitag/github-actions/setops_deployment@setops
         with:
