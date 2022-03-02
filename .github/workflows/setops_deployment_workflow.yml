@@ -22,7 +22,7 @@ on:
         required: true
         type: string
       predeploy_command:
-        required: true
+        required: false
         type: string
       build_context:
         description: The build context / directory where the Dockerfile is located, defaults to '.'

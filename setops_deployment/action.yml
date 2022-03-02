@@ -30,7 +30,7 @@ inputs:
     default: "24"
   predeploy_command:
     description: A predeploy command to be run before activating the releases, e.g. for migrating the database
-    required: true
+    required: false
 runs:
   using: "composite"
   steps:
@@ -61,10 +61,15 @@ runs:
         echo "Changeset for creating releases"
         sos changeset:commit
 
-        echo "Run predeploy command"
-        first_app=${apps[0]}
-        release_id_of_first_app=${apps_with_release_id[$first_app]}
-        sos --app $first_app task:run --debug --release $release_id_of_first_app -- bash -c "${{ inputs.predeploy_command }} && echo 'SETOPS_SUCCESS'" | tee /dev/stderr | grep "SETOPS_SUCCESS" > /dev/null
+        predeploy_command="${{ inputs.predeploy_command }}"
+        if [ ${#predeploy_command} -gt 0 ]; then
+          echo "Run predeploy command"
+          first_app=${apps[0]}
+          release_id_of_first_app=${apps_with_release_id[$first_app]}
+          sos --app $first_app task:run --debug --release $release_id_of_first_app -- bash -c "${{ inputs.predeploy_command }} && echo 'SETOPS_SUCCESS'" | tee /dev/stderr | grep "SETOPS_SUCCESS" > /dev/null
+        else
+          echo "No predeploy command has been configured, skipping."
+        fi
 
         for app in "${apps[@]}"; do
           release_id=${apps_with_release_id[$app]}
