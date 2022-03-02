@@ -61,7 +61,7 @@ runs:
         echo "Changeset for creating releases"
         sos changeset:commit
 
-        predeploy_command=${{ inputs.predeploy_command }}
+        predeploy_command="${{ inputs.predeploy_command }}"
         if [ ${#predeploy_command} -gt 0 ]; then
           echo "Run predeploy command"
           first_app=${apps[0]}
