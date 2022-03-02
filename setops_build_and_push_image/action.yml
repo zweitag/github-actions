@@ -58,15 +58,22 @@ runs:
 
         echo "::set-output name=concatenated_tag_names::$concatenated_tag_names"
       shell: bash
+    # https://github.com/actions/cache#creating-a-cache-key
+    # http://man7.org/linux/man-pages/man1/date.1.html
+    - name: Get Date
+      id: get_date
+      run: |
+        echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+      shell: bash
     - name: "Set up Docker Buildx"
       uses: docker/setup-buildx-action@v1
     - name: Cache Docker layers
       uses: actions/cache@v2
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ inputs.build_cache_key_prefix }}-${{ github.sha }}
+        key: ${{ runner.os }}-buildx-${{ steps.get_date.outputs.date }}-${{ inputs.build_cache_key_prefix }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-${{ inputs.build_cache_key_prefix }}-
+          ${{ runner.os }}-buildx-${{ steps.get_date.outputs.date }}-${{ inputs.build_cache_key_prefix }}-
     - name: "Install Setops"
       uses: setopsco/setup-setops@v3
       with:

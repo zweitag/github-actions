@@ -55,7 +55,7 @@ The workflow consists of a small workflow file that calls two separate Github Ac
 
 ### Action: `setops_build_and_push_image` 
 
-The action builds the image and pushes it to the setops registry which all needed tags (one for each stage / app - combination). It also tries to provide a Docker cache.
+The action builds the image and pushes it to the setops registry which all needed tags (one for each stage / app - combination). It also tries to provide a Docker cache. The cache key contains the current date. This way, we want to make subsequent deploys within one day faster; however we always want to have the newest (security) updates of the used distro and packages.
 
 You can also use the action without the workflow:
 
