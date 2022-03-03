@@ -98,7 +98,6 @@ runs:
         tags: ${{ steps.build_tag_names.outputs.concatenated_tag_names }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new
-        no-cache: ${{ github.event_name == 'schedule' }}
         build-args: COMMIT_SHA=${{env.commit_sha}}
     # Temp fix
     # https://github.com/docker/build-push-action/issues/252
