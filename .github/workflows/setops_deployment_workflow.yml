@@ -43,6 +43,9 @@ on:
         required: true
       SETOPS_PASSWORD:
         required: true
+      build_secrets:
+        description: Docker build secrets
+        required: false
 
 jobs:
   build:
@@ -67,6 +70,7 @@ jobs:
           build_context: ${{ inputs.build_context }}
           build_cache_key_prefix: ${{ inputs.build_cache_key_prefix }}
           build_args: ${{ inputs.build_args }}
+          build_secrets: ${{ secrets.build_secrets }}
 
   deploy:
     name: Setops Deployment
