@@ -33,6 +33,9 @@ inputs:
     description: The cache key used by docker buildx. The complete cache key is concatenated
     required: false
     default: app
+  build_args:
+    description: Docker build args
+    required: false
 
 outputs:
   image_digest:
@@ -98,7 +101,7 @@ runs:
         tags: ${{ steps.build_tag_names.outputs.concatenated_tag_names }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new
-        build-args: COMMIT_SHA=${{env.commit_sha}}
+        build-args: ${{ inputs.build_args }}
     # Temp fix
     # https://github.com/docker/build-push-action/issues/252
     # https://github.com/moby/buildkit/issues/1896

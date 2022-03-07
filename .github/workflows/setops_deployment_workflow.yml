@@ -34,6 +34,10 @@ on:
         required: false
         default: app
         type: string
+      build_args:
+        description: Docker build args
+        required: false
+        type: string
     secrets:
       SETOPS_USER:
         required: true
@@ -62,6 +66,7 @@ jobs:
           setops_organization: ${{ inputs.setops_organization }}
           build_context: ${{ inputs.build_context }}
           build_cache_key_prefix: ${{ inputs.build_cache_key_prefix }}
+          build_args: ${{ inputs.build_args }}
 
   deploy:
     name: Setops Deployment
