@@ -8,42 +8,42 @@ on:
       apps:
         required: true
         type: string
-      setops_organization:
+      setops-organization:
         description: The setops organization, defaults to zweitag
         required: false
         default: zweitag
         type: string
-      setops_host:
+      setops-host:
         description: The setops host, defaults to api.setops.co
         required: false
         default: api.setops.co
         type: string
-      setops_project:
+      setops-project:
         required: true
         type: string
-      predeploy_command:
+      predeploy-command:
         required: false
         type: string
-      build_context:
+      build-context:
         description: The build context / directory where the Dockerfile is located, defaults to '.'
         required: false
         default: .
         type: string
-      build_cache_key_prefix:
+      build-cache-key-prefix:
         description: The cache key used by docker buildx. The complete cache key is concatenated
         required: false
         default: app
         type: string
-      build_args:
+      build-args:
         description: Docker build args
         required: false
         type: string
     secrets:
-      SETOPS_USER:
+      setops-username:
         required: true
-      SETOPS_PASSWORD:
+      setops-password:
         required: true
-      build_secrets:
+      build-secrets:
         description: Docker build secrets
         required: false
 
@@ -52,25 +52,25 @@ jobs:
     name: Build and push image
     runs-on: ubuntu-latest
     outputs:
-      image_digest: ${{ steps.build_and_push_image.outputs.image_digest }}
+      image-digest: ${{ steps.build_and_push_image.outputs.image-digest }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v2
       - name: "Build image and push it to setops image registry"
         id: build_and_push_image
-        uses: zweitag/github-actions/setops_build_and_push_image@setops-make-build-args-configurable
+        uses: zweitag/github-actions/setops-build-and-push-image@setops-make-build-args-configurable
         with:
           stages: ${{ inputs.stages }}
           apps: ${{ inputs.apps }}
-          setops_username: ${{ secrets.SETOPS_USER }}
-          setops_password: ${{ secrets.SETOPS_PASSWORD }}
-          setops_project: ${{ inputs.setops_project }}
-          setops_host: ${{ inputs.setops_host }}
-          setops_organization: ${{ inputs.setops_organization }}
-          build_context: ${{ inputs.build_context }}
-          build_cache_key_prefix: ${{ inputs.build_cache_key_prefix }}
-          build_args: ${{ inputs.build_args }}
-          build_secrets: ${{ secrets.build_secrets }}
+          setops-username: ${{ secrets.setops-username }}
+          setops-password: ${{ secrets.setops-password }}
+          setops-project: ${{ inputs.setops-project }}
+          setops-host: ${{ inputs.setops-host }}
+          setops-organization: ${{ inputs.setops-organization }}
+          build-context: ${{ inputs.build-context }}
+          build-cache-key-prefix: ${{ inputs.build-cache-key-prefix }}
+          build-args: ${{ inputs.build-args }}
+          build-secrets: ${{ secrets.build-secrets }}
 
   deploy:
     name: Setops Deployment
@@ -86,13 +86,13 @@ jobs:
         uses: actions/checkout@v2
       - name: "Deploy apps on setops"
         id: deploy
-        uses: zweitag/github-actions/setops_deployment@setops-make-build-args-configurable
+        uses: zweitag/github-actions/setops-deployment@setops-make-build-args-configurable
         with:
           stage: ${{ matrix.stage }}
           apps: ${{ inputs.apps }}
-          setops_project: ${{ inputs.setops_project }}
-          setops_username: ${{ secrets.SETOPS_USER }}
-          setops_password: ${{ secrets.SETOPS_PASSWORD }}
-          image_digest: ${{ needs.build.outputs.image_digest }}
-          predeploy_command: ${{ inputs.predeploy_command }}
-          setops_organization: ${{ inputs.setops_organization }}
+          setops-project: ${{ inputs.setops-project }}
+          setops-username: ${{ secrets.setops-username }}
+          setops-password: ${{ secrets.setops-password }}
+          image-digest: ${{ needs.build.outputs.image-digest }}
+          predeploy-command: ${{ inputs.predeploy-command }}
+          setops-organization: ${{ inputs.setops-organization }}

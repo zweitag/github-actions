@@ -9,7 +9,7 @@ name: Deployment
 on: push
 
 jobs:
-  setops_stages:
+  setops-stages:
     name: Detect setops stages based on the current branch
     runs-on: ubuntu-latest
     outputs:
@@ -19,25 +19,25 @@ jobs:
       - name: "Detect setops stages based on the current branch"
         id: stages
         run: |
-          if [ "$GITHUB_REF" == "refs/heads/staging" ]; then 
+          if [ "$GITHUB_REF" == "refs/heads/staging" ]; then
             echo '::set-output name=stages::["staging"]'
-          elif [ "$GITHUB_REF" == "refs/heads/production" ]; then 
+          elif [ "$GITHUB_REF" == "refs/heads/production" ]; then
             echo '::set-output name=stages::["production"]'
           else
             echo "⚠️ Could not determine stages for $GITHUB_REF"
             exit 1
           fi
 
-  setops_deployment:
-    uses: zweitag/github-actions/.github/workflows/setops_deployment_workflow.yml@setops
+  setops-deployment:
+    uses: zweitag/github-actions/.github/workflows/setops-deployment-workflow.yml@setops-v2
     with:
-      stages: ${{ needs.setops_stages.outputs.stages }}
+      stages: ${{ needs.setops-stages.outputs.stages }}
       apps: '["web", "clock", "worker"]'
-      setops_project: my_setops_project_name
-      predeploy_command: bin/rails db:migrate
+      setops-project: my_setops_project_name
+      predeploy-command: bin/rails db:migrate
     secrets:
-      SETOPS_USER: ${{ secrets.SETOPS_USER }}
-      SETOPS_PASSWORD: ${{ secrets.SETOPS_PASSWORD }}
+      setops-username: ${{ secrets.SETOPS_USER }}
+      setops-password: ${{ secrets.SETOPS_PASSWORD }}
 ```
 
 This workflow
@@ -47,13 +47,13 @@ This workflow
 
 CAUTION: The script assumes a configured healthcheck for *all* apps.
 
-See the [workflow file](.github/workflows/setops_deployment_workflow.yml) for all possible inputs
+See the [workflow file](.github/workflows/setops-deployment-workflow.yml) for all possible inputs
 
 ## Building blocks
 
 The workflow consists of a small workflow file that calls two separate Github Actions which can also be included separately your Github Workflow.
 
-### Action: `setops_build_and_push_image` 
+### Action: `setops-build-and-push-image`
 
 The action builds the image and pushes it to the setops registry which all needed tags (one for each stage / app - combination). It also tries to provide a Docker cache. The cache key contains the current date. This way, we want to make subsequent deploys within one day faster; however we always want to have the newest (security) updates of the used distro and packages.
 
@@ -65,24 +65,24 @@ jobs:
     name: Build and push image
     runs-on: ubuntu-latest
     outputs:
-      image_digest: ${{ steps.build_and_push_image.outputs.image_digest }}
+      image-digest: ${{ steps.build_and_push_image.outputs.image-digest }}
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v2
       - name: "Build image and push it to setops image registry"
         id: build_and_push_image
-        uses: zweitag/github-actions/setops_build_and_push_image@setops
+        uses: zweitag/github-actions/setops-build-and-push-image@setops-v2
         with:
-          stages: ${{ needs.setops_stages.outputs.stages }}
+          stages: ${{ needs.setops-stages.outputs.stages }}
           apps: '["web", "clock", "worker"]'
-          setops_username: ${{ secrets.SETOPS_USER }}
-          setops_password: ${{ secrets.SETOPS_PASSWORD }}
-          setops_project: my_setops_project_name
+          setops-username: ${{ secrets.SETOPS_USER }}
+          setops-password: ${{ secrets.SETOPS_PASSWORD }}
+          setops-project: my_setops_project_name
 ```
 
-See the [action file](setops_build_and_push_image/action.yml) for all possible inputs
+See the [action file](setops-build-and-push-image/action.yml) for all possible inputs
 
-### Action: `setops_deployment` 
+### Action: `setops-deployment`
 
 The action
 
@@ -106,15 +106,15 @@ You can also use the action without the workflow:
         uses: actions/checkout@v2
       - name: "Deploy project on setops"
         id: deploy
-        uses: zweitag/github-actions/setops_deployment@setops
+        uses: zweitag/github-actions/setops-deployment@setops-v2
         with:
           stage: production
           apps: ${{ inputs.apps }}
-          setops_project: my_setops_project_name
-          setops_username: ${{ secrets.SETOPS_USER }}
-          setops_password: ${{ secrets.SETOPS_PASSWORD }}
-          image_digest: ${{ needs.build.outputs.image_digest }}
-          predeploy_command: bin/rails db:migrate
+          setops-project: my_setops_project_name
+          setops-username: ${{ secrets.SETOPS_USER }}
+          setops-password: ${{ secrets.SETOPS_PASSWORD }}
+          image-digest: ${{ needs.build.outputs.image-digest }}
+          predeploy-command: bin/rails db:migrate
 ```
 
-See the [action file](setops_deployment/action.yml) for all possible inputs
+See the [action file](setops-deployment/action.yml) for all possible inputs
