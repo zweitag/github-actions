@@ -2,20 +2,20 @@ name: "Setops deployment"
 description: "Creates and activates releases for multiple apps within a setops stage, performs a predeploy command, waits for the releases to become healthy"
 
 inputs:
-  setops_organization:
+  setops-organization:
     description: The setops organization, defaults to zweitag
     required: false
     default: zweitag
-  setops_project:
+  setops-project:
     description: The setops project name
     required: true
-  setops_username:
+  setops-username:
     description: The setops username, usually obtained via secrets.SETOPS_USER
     required: true
-  setops_password:
+  setops-password:
     description: The setops password, usually obtained via secrets.SETOPS_PASSWORD
     required: true
-  image_digest:
+  image-digest:
     description: The image digest that was returned when pushing the image to the setops registry
     required: true
   stage:
@@ -24,11 +24,11 @@ inputs:
   apps:
     description: List of apps in JSON format, e.g. '["web", "clock", "worker"]'
     required: true
-  number_of_retries_to_wait_for_successful_deployment:
+  number-of-retries-to-wait-for-successful-deployment:
     description: Max. number of times to wait for a succesful deployment (we sleep for 5 seconds between tries, so 12 equals 1 minute)
     required: false
     default: "24"
-  predeploy_command:
+  predeploy-command:
     description: A predeploy command to be run before activating the releases, e.g. for migrating the database
     required: false
 runs:
@@ -37,13 +37,13 @@ runs:
     - name: "Install Setops"
       uses: setopsco/setup-setops@v3
       with:
-        setops_organization: ${{ inputs.setops_organization }}
-        setops_username: ${{ inputs.setops_username }}
-        setops_password: ${{ inputs.setops_password }}
+        setops_organization: ${{ inputs.setops-organization }}
+        setops_username: ${{ inputs.setops-username }}
+        setops_password: ${{ inputs.setops-password }}
     - name: "Setops deployment"
       run: |
-        shopt -s expand_aliases 
-        alias sos='setops -p ${{ inputs.setops_project }} -s ${{ inputs.stage }}'
+        shopt -s expand_aliases
+        alias sos='setops -p ${{ inputs.setops-project }} -s ${{ inputs.stage }}'
 
         declare -a apps
         for app in $(echo '${{ inputs.apps }}' | jq -r '.[]'); do
@@ -55,18 +55,18 @@ runs:
         declare -A apps_with_release_id
 
         for app in ${apps[@]}; do
-          apps_with_release_id[$app]=$(sos --app $app release:create ${{ inputs.image_digest }} | grep -o 'ReleaseID.*' | grep -o '[0-9].*')
+          apps_with_release_id[$app]=$(sos --app $app release:create ${{ inputs.image-digest }} | grep -o 'ReleaseID.*' | grep -o '[0-9].*')
         done
 
         echo "Changeset for creating releases"
         sos changeset:commit
 
-        predeploy_command="${{ inputs.predeploy_command }}"
+        predeploy_command="${{ inputs.predeploy-command }}"
         if [ ${#predeploy_command} -gt 0 ]; then
           echo "Run predeploy command"
           first_app=${apps[0]}
           release_id_of_first_app=${apps_with_release_id[$first_app]}
-          sos --app $first_app task:run --debug --release $release_id_of_first_app -- bash -c "${{ inputs.predeploy_command }} && echo 'SETOPS_SUCCESS'" | tee /dev/stderr | grep "SETOPS_SUCCESS" > /dev/null
+          sos --app $first_app task:run --debug --release $release_id_of_first_app -- bash -c "${{ inputs.predeploy-command }} && echo 'SETOPS_SUCCESS'" | tee /dev/stderr | grep "SETOPS_SUCCESS" > /dev/null
         else
           echo "No predeploy command has been configured, skipping."
         fi
@@ -80,11 +80,11 @@ runs:
         sos changeset:commit
 
         echo "Waiting for successful releases"
-        max_times=${{ inputs.number_of_retries_to_wait_for_successful_deployment }}
+        max_times=${{ inputs.number-of-retries-to-wait-for-successful-deployment }}
         for app in "${apps[@]}"; do
           release_id=${apps_with_release_id[$app]}
 
-          for i in $(seq 1 $max_times); do 
+          for i in $(seq 1 $max_times); do
             sleep 5
             if sos app:ps $app | grep -w -E "$release_id.*HEALTHY"; then break; fi
             echo "Continue waiting for $app release $release_id"

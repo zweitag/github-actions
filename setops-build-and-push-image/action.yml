@@ -2,21 +2,17 @@ name: "Build and push image to setops registry"
 description: "Builds the docker images and pushes it to the setops registry while creating a tag for each stage / app combination"
 
 inputs:
-  setops_organization:
+  setops-organization:
     description: The setops organization, defaults to zweitag
     required: false
     default: zweitag
-  setops_host:
-    description: The setops host, defaults to api.setops.co
-    required: false
-    default: api.setops.co
-  setops_project:
+  setops-project:
     description: The setops project name
     required: true
-  setops_username:
+  setops-username:
     description: The setops username, usually obtained via secrets.SETOPS_USER
     required: true
-  setops_password:
+  setops-password:
     description: The setops password, usually obtained via secrets.SETOPS_PASSWORD
     required: true
   stages:
@@ -25,17 +21,23 @@ inputs:
   apps:
     description: List of apps in JSON format, e.g. '["web", "clock", "worker"]'
     required: true
-  build_context:
+  build-context:
     description: The build context / directory where the Dockerfile is located, defaults to '.'
     required: false
     default: .
-  build_cache_key_prefix:
+  build-cache-key-prefix:
     description: The cache key used by docker buildx. The complete cache key is concatenated
     required: false
     default: app
+  build-args:
+    description: Docker build args
+    required: false
+  build-secrets:
+    description: Docker build secrets
+    required: false
 
 outputs:
-  image_digest:
+  image-digest:
     value: ${{ steps.build_app.outputs.digest }}
     description: The digest of the image that can be referred to when creating releases
 
@@ -48,7 +50,7 @@ runs:
         declare -a tag_names
         for stage in $(echo '${{ inputs.stages }}' | jq -r '.[]'); do
           for app in $(echo '${{ inputs.apps }}' | jq -r '.[]'); do
-            tag_names+=("${{ inputs.setops_host }}/${{ inputs.setops_organization }}/${{ inputs.setops_project }}/$stage/$app:latest")
+            tag_names+=("api.setops.co/${{ inputs.setops-organization }}/${{ inputs.setops-project }}/$stage/$app:latest")
           done
         done
 
@@ -71,34 +73,31 @@ runs:
       uses: actions/cache@v2
       with:
         path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ steps.get_date.outputs.date }}-${{ inputs.build_cache_key_prefix }}-${{ github.sha }}
+        key: ${{ runner.os }}-buildx-${{ steps.get_date.outputs.date }}-${{ inputs.build-cache-key-prefix }}-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-${{ steps.get_date.outputs.date }}-${{ inputs.build_cache_key_prefix }}-
+          ${{ runner.os }}-buildx-${{ steps.get_date.outputs.date }}-${{ inputs.build-cache-key-prefix }}-
     - name: "Install Setops"
       uses: setopsco/setup-setops@v3
       with:
-        setops_organization: ${{ inputs.setops_organization }}
-        setops_username: ${{ inputs.setops_username }}
-        setops_password: ${{ inputs.setops_password }}
+        setops_organization: ${{ inputs.setops-organization }}
+        setops_username: ${{ inputs.setops-username }}
+        setops_password: ${{ inputs.setops-password }}
     - name: "Login to SetOps registry"
       run: |
         LOGIN_COMMAND=$(setops registry:login | grep printf)
         eval $LOGIN_COMMAND
       shell: bash
-    - name: "Set git revision"
-      run: |
-        echo "commit_sha=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
-      shell: bash
     - name: Build and push app
       id: build_app
       uses: docker/build-push-action@v2
       with:
-        context: ${{ inputs.build_context }}
+        context: ${{ inputs.build-context }}
         push: true
         tags: ${{ steps.build_tag_names.outputs.concatenated_tag_names }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new
-        build-args: COMMIT_SHA=${{env.commit_sha}}
+        build-args: ${{ inputs.build-args }}
+        secrets: ${{ inputs.build-secrets }}
     # Temp fix
     # https://github.com/docker/build-push-action/issues/252
     # https://github.com/moby/buildkit/issues/1896
