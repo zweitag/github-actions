@@ -2,7 +2,7 @@
 
 ## Basic Usage
 
-The repository contains a complete [reusable workflow](https://docs.github.com/en/actions/using-workflows/reusing-workflows) that can be integrated in ci pipelines to perform a complete setops deployment via
+The repository contains a complete [reusable workflow](https://docs.github.com/en/actions/using-workflows/reusing-workflows) that can be integrated in CI pipelines to perform a complete setops deployment via
 
 ```yaml
 name: Deployment
@@ -35,9 +35,15 @@ jobs:
       apps: '["web", "clock", "worker"]'
       setops-project: my_setops_project_name
       predeploy-command: bin/rails db:migrate
+      build-args: |
+        COMMIT_SHA=${{ github.sha }}
+        ANOTHER_BUILD_ARG="Another build arg required by your Dockerfile"
     secrets:
       setops-username: ${{ secrets.SETOPS_USER }}
       setops-password: ${{ secrets.SETOPS_PASSWORD }}
+      build-secrets: |
+        A_BUILD_SECRET_REQUIRED_BY_YOUR_DOCKERFILE="${{ secrets.SECRET1 }}"
+        ANOTHER_BUILD_SECRET="A plain string works, too - but this is not secret anymore :-)"
 ```
 
 This workflow
@@ -55,7 +61,7 @@ The workflow consists of a small workflow file that calls two separate Github Ac
 
 ### Action: `setops-build-and-push-image`
 
-The action builds the image and pushes it to the setops registry which all needed tags (one for each stage / app - combination). It also tries to provide a Docker cache. The cache key contains the current date. This way, we want to make subsequent deploys within one day faster; however we always want to have the newest (security) updates of the used distro and packages.
+The action builds the image and pushes it to the setops registry with all needed tags (one for each stage / app - combination). It also tries to provide a Docker cache. The cache key contains the current date. This way, we want to make subsequent deploys within one day faster; however we always want to have the newest (security) updates of the used distro and packages.
 
 You can also use the action without the workflow:
 
