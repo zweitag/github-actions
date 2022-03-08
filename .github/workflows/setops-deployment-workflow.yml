@@ -13,11 +13,6 @@ on:
         required: false
         default: zweitag
         type: string
-      setops-host:
-        description: The setops host, defaults to api.setops.co
-        required: false
-        default: api.setops.co
-        type: string
       setops-project:
         required: true
         type: string
@@ -65,7 +60,6 @@ jobs:
           setops-username: ${{ secrets.setops-username }}
           setops-password: ${{ secrets.setops-password }}
           setops-project: ${{ inputs.setops-project }}
-          setops-host: ${{ inputs.setops-host }}
           setops-organization: ${{ inputs.setops-organization }}
           build-context: ${{ inputs.build-context }}
           build-cache-key-prefix: ${{ inputs.build-cache-key-prefix }}

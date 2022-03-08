@@ -6,10 +6,6 @@ inputs:
     description: The setops organization, defaults to zweitag
     required: false
     default: zweitag
-  setops-host:
-    description: The setops host, defaults to api.setops.co
-    required: false
-    default: api.setops.co
   setops-project:
     description: The setops project name
     required: true
@@ -54,7 +50,7 @@ runs:
         declare -a tag_names
         for stage in $(echo '${{ inputs.stages }}' | jq -r '.[]'); do
           for app in $(echo '${{ inputs.apps }}' | jq -r '.[]'); do
-            tag_names+=("${{ inputs.setops-host }}/${{ inputs.setops-organization }}/${{ inputs.setops-project }}/$stage/$app:latest")
+            tag_names+=("api.setops.co/${{ inputs.setops-organization }}/${{ inputs.setops-project }}/$stage/$app:latest")
           done
         done
 
