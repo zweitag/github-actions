@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v2
       - name: "Build image and push it to setops image registry"
         id: build_and_push_image
-        uses: zweitag/github-actions/setops-build-and-push-image@setops-make-build-args-configurable
+        uses: zweitag/github-actions/setops-build-and-push-image@setops-v2
         with:
           stages: ${{ inputs.stages }}
           apps: ${{ inputs.apps }}
@@ -80,7 +80,7 @@ jobs:
         uses: actions/checkout@v2
       - name: "Deploy apps on setops"
         id: deploy
-        uses: zweitag/github-actions/setops-deployment@setops-make-build-args-configurable
+        uses: zweitag/github-actions/setops-deployment@setops-v2
         with:
           stage: ${{ matrix.stage }}
           apps: ${{ inputs.apps }}
