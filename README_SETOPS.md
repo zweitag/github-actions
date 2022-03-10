@@ -19,9 +19,9 @@ jobs:
       - name: "Detect setops stages based on the current branch"
         id: stages
         run: |
-          if [ "$GITHUB_REF" == "refs/heads/staging" ]; then 
+          if [ "$GITHUB_REF" == "refs/heads/staging" ]; then
             echo '::set-output name=stages::["staging"]'
-          elif [ "$GITHUB_REF" == "refs/heads/production" ]; then 
+          elif [ "$GITHUB_REF" == "refs/heads/production" ]; then
             echo '::set-output name=stages::["production"]'
           else
             echo "⚠️ Could not determine stages for $GITHUB_REF"
@@ -29,7 +29,7 @@ jobs:
           fi
 
   setops_deployment:
-    uses: zweitag/github-actions/.github/workflows/setops_deployment_workflow.yml@setops
+    uses: zweitag/github-actions/.github/workflows/setops_deployment_workflow.yml@setops-v1
     with:
       stages: ${{ needs.setops_stages.outputs.stages }}
       apps: '["web", "clock", "worker"]'
@@ -53,7 +53,7 @@ See the [workflow file](.github/workflows/setops_deployment_workflow.yml) for al
 
 The workflow consists of a small workflow file that calls two separate Github Actions which can also be included separately your Github Workflow.
 
-### Action: `setops_build_and_push_image` 
+### Action: `setops_build_and_push_image`
 
 The action builds the image and pushes it to the setops registry which all needed tags (one for each stage / app - combination). It also tries to provide a Docker cache. The cache key contains the current date. This way, we want to make subsequent deploys within one day faster; however we always want to have the newest (security) updates of the used distro and packages.
 
@@ -71,7 +71,7 @@ jobs:
         uses: actions/checkout@v2
       - name: "Build image and push it to setops image registry"
         id: build_and_push_image
-        uses: zweitag/github-actions/setops_build_and_push_image@setops
+        uses: zweitag/github-actions/setops_build_and_push_image@setops-v1
         with:
           stages: ${{ needs.setops_stages.outputs.stages }}
           apps: '["web", "clock", "worker"]'
@@ -82,7 +82,7 @@ jobs:
 
 See the [action file](setops_build_and_push_image/action.yml) for all possible inputs
 
-### Action: `setops_deployment` 
+### Action: `setops_deployment`
 
 The action
 
@@ -106,7 +106,7 @@ You can also use the action without the workflow:
         uses: actions/checkout@v2
       - name: "Deploy project on setops"
         id: deploy
-        uses: zweitag/github-actions/setops_deployment@setops
+        uses: zweitag/github-actions/setops_deployment@setops-v1
         with:
           stage: production
           apps: ${{ inputs.apps }}
