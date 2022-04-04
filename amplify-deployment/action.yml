@@ -1,0 +1,123 @@
+name: Amplify Deployment
+description: Push a directory as a deployment to an Amplify Branch (environment)
+
+inputs:
+  amplify_app_id:
+    description: The App Id
+    required: true
+  amplify_branch:
+    description: The branch name which could also be understood as an environment, e.g. production, staging, etc.
+    required: true
+  amplify_branch_ttl:
+    description: If branch does not exist and gets created, this is the Time To Live (TTL) in seconds
+    required: false
+  aws_access_key_id:
+    description: The AWS access key id
+    required: true
+  aws_secret_access_key:
+    description: The AWS secret access key
+    required: true
+  aws_region:
+    description: The AWS region
+    required: true
+  push_directory:
+    description: The path to the directory which should be pushed as a new deployment
+    required: true
+  number_of_retries_to_wait_for_successful_deployment:
+    description: Number of retries with a 15 second delay in between
+    required: false
+    default: 20
+
+outputs:
+  default_domain:
+    description: The default domain provided by Amplify
+    value: https://${{ inputs.amplify_branch }}.${{ inputs.amplify_app_id }}.amplifyapp.com
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Ensure push_directory exists
+      run: |
+        [ -d "${{ inputs.push_directory }}" ] || (echo "Directory ${{ inputs.push_directory }} does not exist." && exit 1)
+      shell: bash
+
+    - name: Prepare archive for upload
+      run: |
+        cd "${{ inputs.push_directory }}"
+        zip -r /tmp/deployment-archive.zip .
+      shell: bash
+
+    - name: Create Branch if not exists
+      id: branch
+      run: |
+        if ! aws amplify get-branch --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}"; then
+          echo "Branch ${{ inputs.amplify_branch }} might not exist. Trying to create it..."
+          ttl_parameter=
+          [ -z "${{ inputs.amplify_branch_ttl }}" ] && ttl_parameter="${{ inputs.amplify_branch_ttl }}"
+          aws amplify create-branch --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}" $ttl_parameter
+        fi
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      shell: bash
+
+    - name: Create Deployment
+      id: deployment
+      run: |
+        deployment=$(aws amplify create-deployment --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}")
+        echo ::set-output name=job_id::$(echo "$deployment" | jq --raw-output .jobId)
+        echo ::set-output name=zip_upload_url::$(echo "$deployment" | jq --raw-output .zipUploadUrl)
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      shell: bash
+
+    - name: Upload Deployment Archive
+      run: curl --upload-file /tmp/deployment-archive.zip "${{ steps.deployment.outputs.zip_upload_url }}"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      shell: bash
+
+    - name: Start Deployment
+      run: aws amplify start-deployment --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}" --job-id "${{ steps.deployment.outputs.job_id }}"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      shell: bash
+
+    - name: Waiting for Deployment to finish
+      run: |
+        echo "Waiting for successful deployment"
+        max_times=${{ inputs.number_of_retries_to_wait_for_successful_deployment }}
+
+        for i in $(seq 1 $max_times); do
+          sleep 15
+          job_status=$(aws amplify get-job --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}" --job-id "${{ steps.deployment.outputs.job_id }}" | jq --raw-output --exit-status '.job.summary.status' )
+
+          if [ "$job_status" == "SUCCEED" ]; then exit 0; fi
+          if [ "$job_status" == "FAILED" ]; then echo "Deployment failed" && exit 1; fi
+          if [ "$job_status" == "CANCELLED" ]; then echo "Deployment was cancelled" && exit 1; fi
+
+          if [ $i = $max_times ]; then echo "Retries exceeded" && exit 1; fi
+          echo "Continue waiting for deployment ${{ steps.deployment.outputs.job_id }} to finish"
+        done
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      shell: bash
+
+    - name: Try to stop Deployment on error
+      if: ${{ failure() }}
+      run: aws amplify stop-job --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}" --job-id "${{ steps.deployment.outputs.job_id }}"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      shell: bash
