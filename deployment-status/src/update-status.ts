@@ -32,7 +32,7 @@ export const updateStatus = async (
   var deployment_id;
 
   if (!data.deployment_id) {
-    const deployment = await client.repos.createDeployment({
+    const deployment = await client.rest.repos.createDeployment({
       ...data,
       auto_merge: false,
       required_contexts: [],
@@ -50,7 +50,7 @@ export const updateStatus = async (
     deployment_id = data.deployment_id;
   }
 
-  await client.repos.createDeploymentStatus({
+  await client.rest.repos.createDeploymentStatus({
     ...data,
     deployment_id: deployment_id,
     state: status,
