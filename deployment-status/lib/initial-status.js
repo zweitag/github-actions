@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -48,7 +52,7 @@ function run() {
             const environmentUrl = core.getInput("environment_url", {
                 required: false,
             });
-            const statusUpdateData = yield update_status_1.updateStatus(status, {
+            const statusUpdateData = yield (0, update_status_1.updateStatus)(status, {
                 environment: environment,
                 target_url: logUrl,
                 environment_url: environmentUrl,
@@ -61,9 +65,15 @@ function run() {
             core.saveState(constats_1.State.StatusUpdateData, statusUpdateData);
             core.setOutput("deployment_id", statusUpdateData.deployment_id);
         }
-        catch (error) {
-            core.error(error);
-            core.setFailed(error.message);
+        catch (err) {
+            if (err instanceof Error) {
+                core.error(err);
+                core.setFailed(err.message);
+            }
+            else {
+                core.error(err.toString());
+                core.setFailed(err.toString());
+            }
         }
     });
 }

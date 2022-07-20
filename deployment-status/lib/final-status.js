@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -34,7 +38,7 @@ const constats_1 = require("./constats");
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const statusUpdateData = JSON.parse(core.getState(constats_1.State.StatusUpdateData));
-        yield update_status_1.updateStatus("success", statusUpdateData);
+        yield (0, update_status_1.updateStatus)("success", statusUpdateData);
     });
 }
 run();

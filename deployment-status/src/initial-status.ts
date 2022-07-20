@@ -39,9 +39,14 @@ async function run() {
     core.saveState(State.StatusUpdateData, statusUpdateData);
 
     core.setOutput("deployment_id", statusUpdateData.deployment_id);
-  } catch (error) {
-    core.error(error);
-    core.setFailed(error.message);
+  } catch (err: any) {
+    if (err instanceof Error) {
+      core.error(err);
+      core.setFailed(err.message);
+    } else {
+      core.error(err.toString());
+      core.setFailed(err.toString());
+    }
   }
 }
 
