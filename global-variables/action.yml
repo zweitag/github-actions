@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: 'global-variables'
-author: 'zweitag'
-description: 'Set global vars for all following build steps'
+name: "global-variables"
+author: "zweitag"
+description: "Set global vars for all following build steps"
 inputs:
   file:
-    description: 'file with global vars'
+    description: "file with global vars"
     required: false
-    default: '.github/workflows/.env.global'
+    default: ".github/workflows/.env.global"
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: "node16"
+  main: "index.js"
 branding:
-  icon: 'settings'
-  color: 'green'
+  icon: "settings"
+  color: "green"
