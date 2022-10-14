@@ -67,8 +67,8 @@ runs:
       id: deployment
       run: |
         deployment=$(aws amplify create-deployment --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}")
-        echo ::set-output name=job_id::$(echo "$deployment" | jq --raw-output .jobId)
-        echo ::set-output name=zip_upload_url::$(echo "$deployment" | jq --raw-output .zipUploadUrl)
+        echo "job_id=$(echo "$deployment" | jq --raw-output .jobId)" >> $GITHUB_OUTPUT
+        echo "zip_upload_url=$(echo "$deployment" | jq --raw-output .zipUploadUrl)" >> $GITHUB_OUTPUT
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
