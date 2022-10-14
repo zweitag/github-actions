@@ -1,39 +1,16 @@
-# Copyright 2019 Zweitag GmbH
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#    http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 name: global-variables
 on: push
 
 jobs:
-  global-variables-local:
-    name: global-variables-local
-    runs-on: ubuntu-18.04
+  global-variables:
+    name: global-variables
+    runs-on: ubuntu-20.04
 
     steps:
-    - name: checkout-repo
-      uses: actions/checkout@master
-    - name: set-global-vars
-      uses: ./global-variables
-    - run: ./.github/workflows/global-variables.sh
-
-  global-variables-public:
-    name: global-variables-public
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: checkout-repo
-      uses: actions/checkout@master
-    - name: set-global-vars
-      uses: zweitag/github-actions/global-variables@master
-    - run: ./.github/workflows/global-variables.sh
+      - name: checkout-repo
+        uses: actions/checkout@master
+      - name: set-global-vars
+        uses: ./global-variables
+      - run: |
+          [[ $TEST != "TEST123" ]] && exit 1
+          [[ $TEST2 != "https://test.de?URL=test.de" ]] && exit 1
