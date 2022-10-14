@@ -11,6 +11,7 @@ jobs:
         uses: actions/checkout@master
       - name: set-global-vars
         uses: ./global-variables
-      - run: |
-          [[ $TEST != "TEST123" ]] && exit 1
-          [[ $TEST2 != "https://test.de?URL=test.de" ]] && exit 1
+      - name: test
+        run: |
+          [[ "$TEST" == "TEST123" ]]
+          [[ "$TEST2" == "https://test.de?URL=test.de" ]]
