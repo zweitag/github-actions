@@ -54,7 +54,7 @@ runs:
         if ! aws amplify get-branch --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}"; then
           echo "Branch ${{ inputs.amplify_branch }} might not exist. Trying to create it..."
           ttl_parameter=
-          [ -z "${{ inputs.amplify_branch_ttl }}" ] && ttl_parameter="${{ inputs.amplify_branch_ttl }}"
+          [ -n "${{ inputs.amplify_branch_ttl }}" ] && ttl_parameter="${{ inputs.amplify_branch_ttl }}"
           aws amplify create-branch --app-id "${{ inputs.amplify_app_id }}" --branch-name "${{ inputs.amplify_branch }}" $ttl_parameter
         fi
       env:
