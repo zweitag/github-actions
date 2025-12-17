@@ -1,0 +1,66 @@
+## Summary of {{ctrf.tool.name}} Security Scan Results
+
+{{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
+### No vulnerabilities with set severity found! 🎉
+{{else}}
+## Found Vulnerabilities:
+{{#each ctrf.tests}}
+<details>
+    <summary>❌ {{id}} {{pkgName}}</summary>
+    <table>
+        <tr>
+            <th>image</th>
+            <td>{{image}}</td>
+        </tr>
+        {{#if installedVersion}}
+        <tr>
+            <th>installed version</th>
+            <td>{{installedVersion}}</td>
+        </tr>
+        {{/if}}
+        {{#if fixedVersion}}
+        <tr>
+            <th>fixed version</th>
+            <td>{{fixedVersion}}</td>
+        </tr>
+        {{/if}}
+        {{#if status}}
+        <tr>
+            <th>status</th>
+            <td>{{status}}</td>
+        </tr>
+        {{/if}}
+        {{#if severity}}
+        <tr>
+            <th>severity</th>
+            <td>{{severity}}</td>
+        </tr>
+        {{/if}}
+        {{#if description}}
+        <tr>
+            <th>description</th>
+            <td>{{description}}</td>
+        </tr>
+        {{/if}}
+        {{#if source}}
+        <tr>
+            <th>source</th>
+            <td>
+                <a href="{{source.ID}}">{{source.URL}}</a>
+            </td>
+        </tr>
+        {{/if}}
+        {{#if references}}
+        <tr>
+            <th>references</th>
+            <td>
+                {{#each references}}
+                <a href="{{this}}">{{this}}</a>{{#unless @last}}, {{/unless}}
+                {{/each}}
+            </td>
+        </tr>
+        {{/if}}
+    </table>
+</details>
+{{/each}}
+{{/if}}

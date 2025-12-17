@@ -1,0 +1,67 @@
+## Summary of {{ctrf.tool.name}} Security Scan Results
+
+| **Tests 📝** | **Passed ✅** | **Failed ❌** |
+| --- | --- | --- |
+| {{ctrf.summary.tests}} | {{ctrf.summary.passed}} | {{ctrf.summary.failed}} |
+
+{{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
+### All Tests Passed! 🎉
+{{else}}
+## Failed Tests:
+{{#each ctrf.tests}}
+{{#if (eq status "failed")}}
+<details>
+    <summary>❌ {{name}}</summary>
+    <table>
+        <tr>
+            <th>file</th>
+            <td>{{file}}</td>
+        </tr>
+        {{#if lines}}
+        <tr>
+            <th>lines</th>
+            <td>{{lines}}</td>
+        </tr>
+        {{/if}}
+        {{#if severity}}
+        <tr>
+            <th>severity</th>
+            <td>{{severity}}</td>
+        </tr>
+        {{/if}}
+        {{#if guideline}}
+        <tr>
+            <th>guideline</th>
+            <td>
+                <a href="{{docs.prismacloud.io}}">{{guideline}}</a>
+            </td>
+        </tr>
+        {{/if}}
+        {{#if description}}
+        <tr>
+            <th>description</th>
+            <td>{{description}}</td>
+        </tr>
+        {{/if}}
+        {{#if resolution}}
+        <tr>
+            <th>proposed solution</th>
+            <td>{{resolution}}</td>
+        </tr>
+        {{/if}}
+        {{#if references}}
+        <tr>
+            <th>references</th>
+            <td>
+                {{#each references}}
+                <a href="{{this}}">{{this}}</a>{{#unless @last}}, {{/unless}}
+                {{/each}}
+            </td>
+        </tr>
+        {{/if}}
+    </table>
+</details>
+
+{{/if}}
+{{/each}}
+{{/if}}
