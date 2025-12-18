@@ -71,7 +71,7 @@ jobs:
       if: always()
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
-        IGNOREFILE : ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+        IGNOREFILE: ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
       id: scan
       run: |
         trivy config ${{ inputs.path }} \
@@ -154,7 +154,7 @@ jobs:
     - name: download vulnerabilities database from aws
       uses: nick-fields/retry@v3
       with:
-        timeout_minutes : 5
+        timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
         command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
@@ -163,7 +163,7 @@ jobs:
       if: failure()
       uses: nick-fields/retry@v3
       with:
-        timeout_minutes : 5
+        timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
         command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy fs --download-db-only
@@ -179,7 +179,7 @@ jobs:
       id: scan
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json > ./security-scanning/trivy.json' || '' }}
-        IGNOREFILE : ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+        IGNOREFILE: ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
       run: |
         trivy fs ${{ inputs.path }} \
           --exit-code 1 \
@@ -212,7 +212,7 @@ jobs:
     - name: download vulnerabilities database from aws
       uses: nick-fields/retry@v3
       with:
-        timeout_minutes : 5
+        timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
         command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy image --download-db-only
@@ -221,7 +221,7 @@ jobs:
       if: failure()
       uses: nick-fields/retry@v3
       with:
-        timeout_minutes : 5
+        timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
         command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy image --download-db-only
@@ -235,14 +235,14 @@ jobs:
         secrets: ${{ secrets.DOCKER_IMAGE_SECRETS }}
 
     - name: scan image for full report
-      run : |
+      run: |
         trivy image security-scan-image --exit-code 0 --skip-db-update --scanners vuln --timeout 10m --list-all-pkgs
       
     - name: scan docker image for high, critical and unknown severities
       if: always()
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
-        IGNOREFILE : ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+        IGNOREFILE: ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
       id: scan
       run: |
         trivy image security-scan-image \
