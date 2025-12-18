@@ -1,5 +1,5 @@
-# .github/workflows/build-and-test.yml
-name: Build and Test
+# .github/workflows/security-scan.yaml
+name: Security Scan
 
 on:
   workflow_call:
