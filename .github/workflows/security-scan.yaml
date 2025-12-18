@@ -273,7 +273,6 @@ jobs:
     if: ${{ inputs.Issue-on-findings != 'false' }}
 
     steps:
-    steps:
       - name: Create issue/Comment on issue
         if: ${{ always() && (needs.image_scan.outputs.NOTIFICATION == 'true' || needs.trivy_configuration_scan.outputs.NOTIFICATION == 'true' || needs.filesystem_scan.outputs.NOTIFICATION == 'true') }}
         uses: actions/github-script@v7
