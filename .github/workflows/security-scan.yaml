@@ -1,0 +1,309 @@
+# .github/workflows/build-and-test.yml
+name: Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      scan-tool:
+        description: 'Tool das für den Scan verwendet werden soll, aktuell verfügbar: "checkov", "trivy"'
+        required: true
+        default: 'trivy'
+        type: string
+      scan-type:
+        description: 'Art des Scans, aktuell nur für Trivy verfügbar: "image", "filesystem" (default), "config"'
+        required: false
+        default: 'filesystem'
+        type: string
+      trivyignorefile:
+        description: 'Pfad zur Trivy Ignore-Datei'
+        default: ''
+        required: false
+        type: string
+      checkovbaseline:
+        description: 'Pfad zur Checkov Baseline-Datei'
+        default: ''
+        required: false
+        type: string
+      path:
+        description: 'Pfad in dem der Scan ausgeführt werden soll (bei image-scans muss der Ordner die Dockerfile enthalten)'
+        required: false
+        default: '.'
+        type: string
+      use-test-reporter:
+        description: 'Ob die Testergebnisse als Report angehängt werden sollen'
+        required: false
+        default: 'true'
+        type: boolean
+      issue-on-findings:
+        description: 'An welchen Github User bei gefailelten Scans ein Github Issue erstellt werden soll (Komma getrennte Liste: ''@user1'', ''@user2''). Wenn leer, wird kein Issue erstellt.'
+        required: false
+        default: 'false'
+        type: string
+    secrets:
+      GITHUB_TOKEN:
+        description: 'GitHub Token zum Download der Trivy-DB'
+        required: false
+      DOCKER_IMAGE_SECRETS:
+        description: 'Docker Image Build Secrets'
+        required: false
+
+jobs:
+
+  trivy_configuration_scan:
+    if: ${{ inputs.scan-tool == 'trivy' && inputs.scan-type == 'config' }}
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v4
+
+    - name: setup trivy
+      uses: ./.github/actions/setup-trivy
+    
+    - name: scan configuration for full report
+      if: always()
+      run: |
+        trivy config ${{ inputs.path }} --exit-code 0
+
+    - name: scan configuration for new medium, high, critical and unknown severities
+      if: always()
+      env:
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
+        IGNOREFILE : ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+      id: scan
+      run: |
+        trivy config ${{ inputs.path }} \
+          --exit-code 1 \
+          --skip-db-update \
+          --severity HIGH,CRITICAL,UNKNOWN \
+          --scanners vuln \
+          --timeout 10m \
+          $IGNOREFILE \
+          $REPORT
+
+    - name: convert Trivy report to CTRF format
+      if: always() && ${{ inputs.use-test-reporter }}
+      run: |
+        python3 security-scanning/trivyconfig2ctrf.py ./security-scanning/trivy.json ./security-scanning/trivy.ctrf.json
+    
+    - name: Publish Test Report
+      if: always() && ${{ inputs.use-test-reporter }}
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './security-scanning/trivy.ctrf.json'
+        template-path: './security-scanning/config_scan_template.hbs'
+        custom-report: true
+
+  checkov_scan:
+    if: ${{ inputs.scan-tool == 'checkov' }}
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: setup Checkov
+      run: |
+            pip install checkov
+
+    - name: run Checkov
+      env:
+        BASELINE: ${{ inputs.checkovbaseline != '' && '--baseline ' + inputs.checkovbaseline || '' }}
+      run: |
+        checkov \
+          --directory ${{ inputs.path }} \
+          --output json \
+          $BASELINE \
+          --soft-fail-on LOW > ./security-scanning/checkov.json 
+
+    - name: convert Checkov report to CTRF format
+      if: always() && ${{ inputs.use-test-reporter }}
+      run: |
+        echo "erstelle datei" > ./security-scanning/checkov.ctrf.json
+        python3 security-scanning/checkov2ctrf.py ./security-scanning/checkov.json ./security-scanning/checkov.ctrf.json
+    
+    - name: Publish Test Report
+      if: always() && ${{ inputs.use-test-reporter }}
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './security-scanning/checkov.ctrf.json'
+        template-path: './security-scanning/config_scan_template.hbs'
+        custom-report: true
+
+  filesystem_scan:
+    if: ${{ inputs.scan-tool == 'trivy' && (inputs.scan-type == 'filesystem' || inputs.scan-type == '') }}
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v4
+    
+    - name: setup trivy
+      uses: ./.github/actions/setup-trivy
+
+    - name: download vulnerabilities database from aws
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes : 5
+        max_attempts: 3
+        retry_wait_seconds: 60
+        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
+
+    - name: download vulnerabilities database if aws failed
+      if: failure()
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes : 5
+        max_attempts: 3
+        retry_wait_seconds: 60
+        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy fs --download-db-only
+
+    - name: scan filesystem for full report
+      if: always()
+      run: |
+        trivy fs ${{ inputs.path }} --exit-code 0 --skip-db-update
+
+    # ob mit report geht weiß ich noch nicht
+    - name: scan filesystem for new medium, high, critical and unknown severities with report and ignorefile
+      if: always()
+      id: scan
+      env:
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json > ./security-scanning/trivy.json' || '' }}
+        IGNOREFILE : ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+      run: |
+        trivy fs ${{ inputs.path }} \
+          --exit-code 1 \
+          --skip-db-update \
+          --severity MEDIUM,HIGH,CRITICAL,UNKNOWN \
+          $IGNOREFILE \
+          $REPORT
+
+    - name: Publish Test Report
+      if: always() && ${{ inputs.use-test-reporter }} 
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './security-scanning/trivy.ctrf.json'
+        template-path: './security-scanning/config_scan_template.hbs'
+        custom-report: true
+
+  image_scan:
+    if: ${{ inputs.scan-tool == 'trivy' && inputs.scan-type == 'image' }}
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v4 
+
+    - name: setup trivy
+      uses: ./.github/actions/setup-trivy
+
+    - name: download vulnerabilities database from aws
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes : 5
+        max_attempts: 3
+        retry_wait_seconds: 60
+        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy image --download-db-only
+
+    - name: download vulnerabilities database if aws failed
+      if: failure()
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes : 5
+        max_attempts: 3
+        retry_wait_seconds: 60
+        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy image --download-db-only
+
+    - name: build docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: ${{ inputs.path }}
+        push: false
+        tags: security-scan-image
+        secrets: ${{ secrets.DOCKER_IMAGE_SECRETS }}
+
+    - name: scan image for full report
+      run : |
+        trivy image security-scan-image --exit-code 0 --skip-db-update --scanners vuln --timeout 10m --list-all-pkgs
+      
+    - name: scan docker image for high, critical and unknown severities
+      if: always()
+      env:
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
+        IGNOREFILE : ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+      id: scan
+      run: |
+        trivy image security-scan-image \
+          --exit-code 1 \
+          --skip-db-update \
+          --severity HIGH,CRITICAL,UNKNOWN \
+          --scanners vuln \
+          --timeout 10m \
+          $IGNOREFILE \
+          $REPORT
+
+    - name: convert Trivy report to CTRF format
+      if: always() && ${{ inputs.use-test-reporter }}
+      run: |
+        python3 security-scanning/trivyimage2ctrf.py ./security-scanning/trivy.json ./security-scanning/trivy.ctrf.json
+
+    - name: Publish Test Report
+      uses: ctrf-io/github-test-reporter@v1
+      if: always() && ${{ inputs.use-test-reporter }}
+      with:
+        report-path: './security-scanning/trivy.ctrf.json'
+        template-path: './security-scanning/image_scan_template.hbs'
+        custom-report: true
+
+  create_issues:
+    needs: [trivy_configuration_scan, checkov_scan, filesystem_scan, image_scan]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.Issue-on-findings != 'false' }}
+
+    steps:
+    steps:
+      - name: Create issue/Comment on issue
+        if: ${{ always() && (needs.image_scan.outputs.NOTIFICATION == 'true' || needs.trivy_configuration_scan.outputs.NOTIFICATION == 'true' || needs.filesystem_scan.outputs.NOTIFICATION == 'true') }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const issue_title = 'Security scan failed';
+            const issue_body = 'One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
+            const assignees = [${{ inputs.issue-on-findings }}];
+            const existing_issue = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              labels: 'security-scan-failure'
+            });
+            if (existing_issue.data.length === 0) {
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title: issue_title,
+              body: issue_body,
+              labels: ['security-scan-failure']
+              });
+            } else {
+              const issue_number = existing_issue.data[0].number;
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: issue_body
+              });
+            }
