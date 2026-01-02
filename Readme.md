@@ -43,7 +43,7 @@ ANOTHER_KEY=VALUE2
 
 # License
 
-Copyright 2019 Zweitag GmbH
+Copyright 2026 Zweitag GmbH
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

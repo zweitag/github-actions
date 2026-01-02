@@ -26,7 +26,7 @@ outputs:
   deployment_id:
     description: "The ID of the created deployment"
 runs:
-  using: "node20"
+  using: "node24"
   main: "dist/initial-status/index.js"
   post: "dist/final-status/index.js"
   post-if: "success()"
