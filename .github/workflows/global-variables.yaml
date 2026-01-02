@@ -4,11 +4,11 @@ on: push
 jobs:
   global-variables:
     name: global-variables
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: checkout-repo
-        uses: actions/checkout@master
+        uses: actions/checkout@main
       - name: set-global-vars
         uses: ./global-variables
       - name: test
