@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - name: checkout-repo
-        uses: actions/checkout@master
+        uses: actions/checkout@main
       - name: set-global-vars
         uses: ./global-variables
       - name: test
