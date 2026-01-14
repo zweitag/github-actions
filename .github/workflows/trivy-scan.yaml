@@ -22,7 +22,7 @@ on:
       use-test-reporter:
         description: 'Whether to attach the test results as a report (default: true)'
         required: false
-        default: 'true'
+        default: true
         type: boolean
       issue-on-findings:
         description: 'GitHub users to assign when creating an issue for failed scans (comma-separated list: ''@user1'', ''@user2''). If left empty, no issue will be created.'
