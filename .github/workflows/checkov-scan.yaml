@@ -69,13 +69,13 @@ jobs:
         custom-report: true
 
   create_issue:
-    needs: [configuration_scan, checkov_scan, filesystem_scan, image_scan]
+    needs: [checkov_scan]
     runs-on: ubuntu-latest
     if: ${{ inputs.issue-on-findings != 'false' }}
 
     steps:
       - name: Create issue/Comment on issue
-        if: ${{ always() && (needs.image_scan.outputs.NOTIFICATION == 'true' || needs. configuration_scan.outputs.NOTIFICATION == 'true' || needs.filesystem_scan.outputs.NOTIFICATION == 'true') }}
+        if: ${{ always() && needs.checkov_scan.outputs.NOTIFICATION == 'true' }}
         uses: actions/github-script@v7
         with:
           script: |
