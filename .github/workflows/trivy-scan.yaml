@@ -30,7 +30,7 @@ on:
         default: 'false'
         type: string
     secrets:
-      GITHUB_TOKEN:
+      GH_TOKEN:
         description: 'GitHub Token for downloading the Trivy DB'
         required: false
       DOCKER_IMAGE_SECRETS:
@@ -105,7 +105,7 @@ jobs:
         timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
+        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
 
     - name: download vulnerabilities database if aws failed
       if: failure()
@@ -114,7 +114,7 @@ jobs:
         timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy fs --download-db-only
+        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only
 
     - name: scan filesystem for full report
       if: always()
@@ -163,7 +163,7 @@ jobs:
         timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy image --download-db-only
+        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy image --download-db-only
 
     - name: download vulnerabilities database if aws failed
       if: failure()
@@ -172,7 +172,7 @@ jobs:
         timeout_minutes: 5
         max_attempts: 3
         retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} trivy image --download-db-only
+        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy image --download-db-only
 
     - name: build docker image
       uses: docker/build-push-action@v4
