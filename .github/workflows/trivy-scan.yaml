@@ -37,6 +37,9 @@ on:
         description: 'Docker Image Build Secrets'
         required: false
 
+env:
+  TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasec/trivy-db,ghcr.io/aquasecurity/trivy-db
+
 jobs:
 
   configuration_scan:
@@ -50,7 +53,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: setup trivy
-      uses: ./.github/actions/setup-trivy
+      uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
     
     - name: scan configuration for full report
       if: always()
@@ -97,24 +100,52 @@ jobs:
       uses: actions/checkout@v4
     
     - name: setup trivy
-      uses: ./.github/actions/setup-trivy
+      uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
 
     - name: download vulnerabilities database from aws
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 5
-        max_attempts: 3
-        retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
+      run: |
+        MAX_RETRIES=3
+        RETRY_DELAY=60
+        ATTEMPT=1
+        
+        until [ $ATTEMPT -gt $MAX_RETRIES ]
+        do
+          echo "Attempt $ATTEMPT of $MAX_RETRIES..."
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
+
+          if [ $? -eq 0 ]; then
+            echo "Trivy DB download succeeded."
+            exit 0
+          else
+            echo "Trivy DB download failed. Retrying in $RETRY_DELAY seconds..."
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep $RETRY_DELAY
+          fi
+        done
+        exit 1
 
     - name: download vulnerabilities database if aws failed
       if: failure()
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 5
-        max_attempts: 3
-        retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only
+      run: |
+        MAX_RETRIES=3
+        RETRY_DELAY=60
+        ATTEMPT=1
+        
+        until [ $ATTEMPT -gt $MAX_RETRIES ]
+        do
+          echo "Attempt $ATTEMPT of $MAX_RETRIES..."
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only
+
+          if [ $? -eq 0 ]; then
+            echo "Trivy DB download succeeded."
+            exit 0
+          else
+            echo "Trivy DB download failed. Retrying in $RETRY_DELAY seconds..."
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep $RETRY_DELAY
+          fi
+        done
+        exit 1
 
     - name: scan filesystem for full report
       if: always()
@@ -155,24 +186,57 @@ jobs:
       uses: actions/checkout@v4 
 
     - name: setup trivy
-      uses: ./.github/actions/setup-trivy
+      uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
 
     - name: download vulnerabilities database from aws
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 5
-        max_attempts: 3
-        retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy image --download-db-only
+      run: |
+        MAX_RETRIES=3
+        RETRY_DELAY=60
+        ATTEMPT=1
+        
+        until [ $ATTEMPT -gt $MAX_RETRIES ]
+        do
+          echo "Attempt $ATTEMPT of $MAX_RETRIES..."
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
+
+          if [ $? -eq 0 ]; then
+            echo "Trivy DB download succeeded."
+            exit 0
+          else
+            echo "Trivy DB download failed. Retrying in $RETRY_DELAY seconds..."
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep $RETRY_DELAY
+          fi
+        done
+        exit 1
 
     - name: download vulnerabilities database if aws failed
       if: failure()
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 5
-        max_attempts: 3
-        retry_wait_seconds: 60
-        command: GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy image --download-db-only
+      run: |
+        MAX_RETRIES=3
+        RETRY_DELAY=60
+        ATTEMPT=1
+        
+        until [ $ATTEMPT -gt $MAX_RETRIES ]
+        do
+          echo "Attempt $ATTEMPT of $MAX_RETRIES..."
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only
+
+          if [ $? -eq 0 ]; then
+            echo "Trivy DB download succeeded."
+            exit 0
+          else
+            echo "Trivy DB download failed. Retrying in $RETRY_DELAY seconds..."
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep $RETRY_DELAY
+          fi
+        done
+        exit 1
+
+    - name: scan filesystem for full report
+      if: always()
+      run: |
+        trivy fs ${{ inputs.path }} --exit-code 0 --skip-db-update
 
     - name: build docker image
       uses: docker/build-push-action@v4
