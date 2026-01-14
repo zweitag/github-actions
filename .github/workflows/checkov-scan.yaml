@@ -57,7 +57,7 @@ jobs:
     - name: convert Checkov report to CTRF format
       if: always() && ${{ inputs.use-test-reporter }}
       run: |
-        echo "create file > ./security-scanning/checkov.ctrf.json
+        touch ./security-scanning/checkov.ctrf.json
         python3 security-scanning/checkov2ctrf.py ./security-scanning/checkov.json ./security-scanning/checkov.ctrf.json
     
     - name: Publish Test Report
