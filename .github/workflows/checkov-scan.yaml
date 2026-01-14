@@ -1,0 +1,109 @@
+# .github/workflows/security-scan.yaml
+name: Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      checkovbaseline:
+        description: 'Path to the Checkov baseline file (default: none)'
+        default: ''
+        required: false
+        type: string
+      path:
+        description: 'Directory path where the scan should be performed (default: .)'
+        required: false
+        default: '.'
+        type: string
+      use-test-reporter:
+        description: 'Attach the test results as a report (default: true)'
+        required: false
+        default: 'true'
+        type: boolean
+      issue-on-findings:
+        description: 'GitHub users to assign when creating an issue for failed scans (comma-separated list: ''@user1'', ''@user2''). If left empty, no issue will be created.'
+        required: false
+        default: 'false'
+        type: string
+
+jobs:
+
+  checkov_scan:
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: setup Checkov
+      run: |
+            pip install checkov
+
+    - name: run Checkov
+      env:
+        BASELINE: ${{ inputs.checkovbaseline != '' && '--baseline ' + inputs.checkovbaseline || '' }}
+      run: |
+        checkov \
+          --directory ${{ inputs.path }} \
+          --output json \
+          $BASELINE \
+          --soft-fail-on LOW > ./security-scanning/checkov.json 
+
+    - name: convert Checkov report to CTRF format
+      if: always() && ${{ inputs.use-test-reporter }}
+      run: |
+        echo "create file > ./security-scanning/checkov.ctrf.json
+        python3 security-scanning/checkov2ctrf.py ./security-scanning/checkov.json ./security-scanning/checkov.ctrf.json
+    
+    - name: Publish Test Report
+      if: always() && ${{ inputs.use-test-reporter }}
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './security-scanning/checkov.ctrf.json'
+        template-path: './security-scanning/config_scan_template.hbs'
+        custom-report: true
+
+  create_issue:
+    needs: [configuration_scan, checkov_scan, filesystem_scan, image_scan]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.issue-on-findings != 'false' }}
+
+    steps:
+      - name: Create issue/Comment on issue
+        if: ${{ always() && (needs.image_scan.outputs.NOTIFICATION == 'true' || needs. configuration_scan.outputs.NOTIFICATION == 'true' || needs.filesystem_scan.outputs.NOTIFICATION == 'true') }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const issue_title = 'Security scan failed';
+            const issue_body = 'One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
+            const assignees = [${{ inputs.issue-on-findings }}];
+            const existing_issue = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: 'open',
+              labels: 'security-scan-failure'
+            });
+            if (existing_issue.data.length === 0) {
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title: issue_title,
+              body: issue_body,
+              labels: ['security-scan-failure']
+              });
+            } else {
+              const issue_number = existing_issue.data[0].number;
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: issue_body
+              });
+            }

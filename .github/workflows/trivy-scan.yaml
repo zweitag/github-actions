@@ -4,53 +4,43 @@ name: Security Scan
 on:
   workflow_call:
     inputs:
-      scan-tool:
-        description: 'Tool das für den Scan verwendet werden soll, aktuell verfügbar: "checkov", "trivy"'
-        required: true
-        default: 'trivy'
-        type: string
       scan-type:
-        description: 'Art des Scans, aktuell nur für Trivy verfügbar: "image", "filesystem" (default), "config"'
+        description: 'Type of scan to perform: "image", "filesystem" (default), or "config"'
         required: false
         default: 'filesystem'
         type: string
       trivyignorefile:
-        description: 'Pfad zur Trivy Ignore-Datei'
-        default: ''
-        required: false
-        type: string
-      checkovbaseline:
-        description: 'Pfad zur Checkov Baseline-Datei'
+        description: 'Path to the Trivy ignore file (default: none)'
         default: ''
         required: false
         type: string
       path:
-        description: 'Pfad in dem der Scan ausgeführt werden soll (bei image-scans muss der Ordner die Dockerfile enthalten)'
+        description: 'Directory path where the scan should be performed (default: .) (for image scans, the directory must contain the Dockerfile)'
         required: false
         default: '.'
         type: string
       use-test-reporter:
-        description: 'Ob die Testergebnisse als Report angehängt werden sollen'
+        description: 'Whether to attach the test results as a report (default: true)'
         required: false
         default: 'true'
         type: boolean
       issue-on-findings:
-        description: 'An welchen Github User bei gefailelten Scans ein Github Issue erstellt werden soll (Komma getrennte Liste: ''@user1'', ''@user2''). Wenn leer, wird kein Issue erstellt.'
+        description: 'GitHub users to assign when creating an issue for failed scans (comma-separated list: ''@user1'', ''@user2''). If left empty, no issue will be created.'
         required: false
         default: 'false'
         type: string
     secrets:
       GITHUB_TOKEN:
-        description: 'GitHub Token zum Download der Trivy-DB'
-        required: false
+        description: 'GitHub Token for downloading the Trivy DB'
+        required: 
       DOCKER_IMAGE_SECRETS:
         description: 'Docker Image Build Secrets'
         required: false
 
 jobs:
 
-  trivy_configuration_scan:
-    if: ${{ inputs.scan-tool == 'trivy' && inputs.scan-type == 'config' }}
+  configuration_scan:
+    if: ${{ inputs.scan-type == 'config' }}
     outputs:
       NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
     runs-on: ubuntu-latest
@@ -96,50 +86,8 @@ jobs:
         template-path: './security-scanning/config_scan_template.hbs'
         custom-report: true
 
-  checkov_scan:
-    if: ${{ inputs.scan-tool == 'checkov' }}
-    outputs:
-      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: checkout repository
-      uses: actions/checkout@v4
-
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.13"
-
-    - name: setup Checkov
-      run: |
-            pip install checkov
-
-    - name: run Checkov
-      env:
-        BASELINE: ${{ inputs.checkovbaseline != '' && '--baseline ' + inputs.checkovbaseline || '' }}
-      run: |
-        checkov \
-          --directory ${{ inputs.path }} \
-          --output json \
-          $BASELINE \
-          --soft-fail-on LOW > ./security-scanning/checkov.json 
-
-    - name: convert Checkov report to CTRF format
-      if: always() && ${{ inputs.use-test-reporter }}
-      run: |
-        echo "erstelle datei" > ./security-scanning/checkov.ctrf.json
-        python3 security-scanning/checkov2ctrf.py ./security-scanning/checkov.json ./security-scanning/checkov.ctrf.json
-    
-    - name: Publish Test Report
-      if: always() && ${{ inputs.use-test-reporter }}
-      uses: ctrf-io/github-test-reporter@v1
-      with:
-        report-path: './security-scanning/checkov.ctrf.json'
-        template-path: './security-scanning/config_scan_template.hbs'
-        custom-report: true
-
   filesystem_scan:
-    if: ${{ inputs.scan-tool == 'trivy' && (inputs.scan-type == 'filesystem' || inputs.scan-type == '') }}
+    if: ${{ inputs.scan-type == 'filesystem' || inputs.scan-type == '' }}
     outputs:
       NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
     runs-on: ubuntu-latest
@@ -197,7 +145,7 @@ jobs:
         custom-report: true
 
   image_scan:
-    if: ${{ inputs.scan-tool == 'trivy' && inputs.scan-type == 'image' }}
+    if: ${{ inputs.scan-type == 'image' }}
     outputs:
       NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
     runs-on: ubuntu-latest
@@ -268,13 +216,13 @@ jobs:
         custom-report: true
 
   create_issues:
-    needs: [trivy_configuration_scan, checkov_scan, filesystem_scan, image_scan]
+    needs: [configuration_scan, filesystem_scan, image_scan]
     runs-on: ubuntu-latest
-    if: ${{ inputs.Issue-on-findings != 'false' }}
+    if: ${{ inputs.issue-on-findings != 'false' }}
 
     steps:
       - name: Create issue/Comment on issue
-        if: ${{ always() && (needs.image_scan.outputs.NOTIFICATION == 'true' || needs.trivy_configuration_scan.outputs.NOTIFICATION == 'true' || needs.filesystem_scan.outputs.NOTIFICATION == 'true') }}
+        if: ${{ always() && (needs.image_scan.outputs.NOTIFICATION == 'true' || needs.configuration_scan.outputs.NOTIFICATION == 'true' || needs.filesystem_scan.outputs.NOTIFICATION == 'true') }}
         uses: actions/github-script@v7
         with:
           script: |
