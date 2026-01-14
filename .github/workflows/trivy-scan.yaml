@@ -61,7 +61,7 @@ jobs:
       if: always()
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
-        IGNOREFILE: ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+        IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       id: scan
       run: |
         trivy config ${{ inputs.path }} \
@@ -127,7 +127,7 @@ jobs:
       id: scan
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json > ./security-scanning/trivy.json' || '' }}
-        IGNOREFILE: ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+        IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       run: |
         trivy fs ${{ inputs.path }} \
           --exit-code 1 \
@@ -190,7 +190,7 @@ jobs:
       if: always()
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
-        IGNOREFILE: ${{ inputs.trivyignorefile != '' && '--ignorefile ' + inputs.trivyignorefile || '' }}
+        IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       id: scan
       run: |
         trivy image security-scan-image \

@@ -46,7 +46,7 @@ jobs:
 
     - name: run Checkov
       env:
-        BASELINE: ${{ inputs.checkovbaseline != '' && '--baseline ' + inputs.checkovbaseline || '' }}
+        BASELINE: ${{ inputs.checkovbaseline != '' && format('--baseline {0}', inputs.checkovbaseline) || '' }}
       run: |
         checkov \
           --directory ${{ inputs.path }} \
