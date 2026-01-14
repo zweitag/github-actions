@@ -74,7 +74,7 @@ jobs:
     - name: scan configuration with configured severities
       if: always()
       env:
-        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> ./scan-results/trivy.json' || '' }}
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       id: scan
       run: |
@@ -179,7 +179,7 @@ jobs:
       if: always()
       id: scan
       env:
-        REPORT: ${{ inputs.use-test-reporter == true && '-f json > ./scan-results/trivy.json' || '' }}
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       run: |
         trivy fs ${{ inputs.path }} \
@@ -286,7 +286,7 @@ jobs:
     - name: scan docker image for configured severities
       if: always()
       env:
-        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> ./scan-results/trivy.json' || '' }}
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       id: scan
       run: |
