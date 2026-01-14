@@ -28,9 +28,9 @@ on:
 jobs:
 
   checkov_scan:
-  outputs:
-    NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
-  runs-on: ubuntu-latest
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
 
   steps:
     - name: checkout repository
