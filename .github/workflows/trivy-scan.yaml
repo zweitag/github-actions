@@ -32,7 +32,7 @@ on:
     secrets:
       GITHUB_TOKEN:
         description: 'GitHub Token for downloading the Trivy DB'
-        required: 
+        required: false
       DOCKER_IMAGE_SECRETS:
         description: 'Docker Image Build Secrets'
         required: false
