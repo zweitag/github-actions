@@ -32,52 +32,52 @@ jobs:
       NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
     runs-on: ubuntu-latest
 
-  steps:
-    - name: checkout repository
-      uses: actions/checkout@v4
-
-    - name: checkout security-scanning scripts
-      uses: actions/checkout@v4
-      with:
-        repository: zweitag/github-actions
-        path: _security-tools
-        sparse-checkout: security-scanning
-
-    - name: create output folder
-      run: mkdir -p ./scan-results
-
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.13"
-
-    - name: setup Checkov
-      run: pip install checkov
-
-    - name: run Checkov
-      id: scan
-      env:
-        BASELINE: ${{ inputs.checkovbaseline != '' && format('--baseline {0}', inputs.checkovbaseline) || '' }}
-      run: |
-        checkov \
-          --directory ${{ inputs.path }} \
-          --output json \
-          $BASELINE \
-          --soft-fail-on LOW > ./scan-results/checkov.json
-
-    - name: convert Checkov report to CTRF format
-      if: always() && inputs.use-test-reporter
-      run: |
-        python3 _security-tools/security-scanning/checkov2ctrf.py \
-          ./scan-results/checkov.json \
-          ./scan-results/checkov.ctrf.json
-
-    - name: Publish Test Report
-      if: always() && inputs.use-test-reporter
-      uses: ctrf-io/github-test-reporter@v1
-      with:
-        report-path: './scan-results/checkov.ctrf.json'
-        template-path: '_security-tools/security-scanning/config_scan_template.hbs'
-        custom-report: true
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+  
+      - name: checkout security-scanning scripts
+        uses: actions/checkout@v4
+        with:
+          repository: zweitag/github-actions
+          path: _security-tools
+          sparse-checkout: security-scanning
+  
+      - name: create output folder
+        run: mkdir -p ./scan-results
+  
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+  
+      - name: setup Checkov
+        run: pip install checkov
+  
+      - name: run Checkov
+        id: scan
+        env:
+          BASELINE: ${{ inputs.checkovbaseline != '' && format('--baseline {0}', inputs.checkovbaseline) || '' }}
+        run: |
+          checkov \
+            --directory ${{ inputs.path }} \
+            --output json \
+            $BASELINE \
+            --soft-fail-on LOW > ./scan-results/checkov.json
+  
+      - name: convert Checkov report to CTRF format
+        if: always() && inputs.use-test-reporter
+        run: |
+          python3 _security-tools/security-scanning/checkov2ctrf.py \
+            ./scan-results/checkov.json \
+            ./scan-results/checkov.ctrf.json
+  
+      - name: Publish Test Report
+        if: always() && inputs.use-test-reporter
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: './scan-results/checkov.ctrf.json'
+          template-path: '_security-tools/security-scanning/config_scan_template.hbs'
+          custom-report: true
 
   create_issue:
     needs: [checkov_scan]
