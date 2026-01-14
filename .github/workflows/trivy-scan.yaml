@@ -52,6 +52,17 @@ jobs:
     - name: checkout repository
       uses: actions/checkout@v4
 
+    - name: checkout security-scanning scripts
+      uses: actions/checkout@v4
+      with:
+        repository: zweitag/github-actions
+        ref: chore--create-configurable-Security-Scan
+        path: _security-tools
+        sparse-checkout: security-scanning
+
+    - name: create output folder
+      run: mkdir -p ./scan-results
+
     - name: setup trivy
       uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
     
@@ -60,10 +71,10 @@ jobs:
       run: |
         trivy config ${{ inputs.path }} --exit-code 0
 
-    - name: scan configuration for new medium, high, critical and unknown severities
+    - name: scan configuration with configured severities
       if: always()
       env:
-        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       id: scan
       run: |
@@ -79,14 +90,14 @@ jobs:
     - name: convert Trivy report to CTRF format
       if: always() && ${{ inputs.use-test-reporter }}
       run: |
-        python3 security-scanning/trivyconfig2ctrf.py ./security-scanning/trivy.json ./security-scanning/trivy.ctrf.json
+        python3 _security-tools/security-scanning/trivyconfig2ctrf.py ./scan-results/trivy.json ./scan-results/trivy.ctrf.json
     
     - name: Publish Test Report
       if: always() && ${{ inputs.use-test-reporter }}
       uses: ctrf-io/github-test-reporter@v1
       with:
-        report-path: './security-scanning/trivy.ctrf.json'
-        template-path: './security-scanning/config_scan_template.hbs'
+        report-path: './scan-results/trivy.ctrf.json'
+        template-path: '_security-tools/security-scanning/config_scan_template.hbs'
         custom-report: true
 
   filesystem_scan:
@@ -99,6 +110,17 @@ jobs:
     - name: checkout repository
       uses: actions/checkout@v4
     
+    - name: checkout security-scanning scripts
+      uses: actions/checkout@v4
+      with:
+        repository: zweitag/github-actions
+        ref: chore--create-configurable-Security-Scan
+        path: _security-tools
+        sparse-checkout: security-scanning
+
+    - name: create output folder
+      run: mkdir -p ./scan-results
+
     - name: setup trivy
       uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
 
@@ -153,11 +175,11 @@ jobs:
         trivy fs ${{ inputs.path }} --exit-code 0 --skip-db-update
 
     # ob mit report geht weiß ich noch nicht
-    - name: scan filesystem for new medium, high, critical and unknown severities with report and ignorefile
+    - name: scan filesystem for configured severities
       if: always()
       id: scan
       env:
-        REPORT: ${{ inputs.use-test-reporter == true && '-f json > ./security-scanning/trivy.json' || '' }}
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json > ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       run: |
         trivy fs ${{ inputs.path }} \
@@ -171,8 +193,8 @@ jobs:
       if: always() && ${{ inputs.use-test-reporter }} 
       uses: ctrf-io/github-test-reporter@v1
       with:
-        report-path: './security-scanning/trivy.ctrf.json'
-        template-path: './security-scanning/config_scan_template.hbs'
+        report-path: './scan-results/trivy.ctrf.json'
+        template-path: '_security-tools/security-scanning/config_scan_template.hbs'
         custom-report: true
 
   image_scan:
@@ -184,6 +206,17 @@ jobs:
     steps:
     - name: checkout repository
       uses: actions/checkout@v4 
+
+    - name: checkout security-scanning scripts
+      uses: actions/checkout@v4
+      with:
+        repository: zweitag/github-actions
+        ref: chore--create-configurable-Security-Scan
+        path: _security-tools
+        sparse-checkout: security-scanning
+
+    - name: create output folder
+      run: mkdir -p ./scan-results
 
     - name: setup trivy
       uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
@@ -250,10 +283,10 @@ jobs:
       run: |
         trivy image security-scan-image --exit-code 0 --skip-db-update --scanners vuln --timeout 10m --list-all-pkgs
       
-    - name: scan docker image for high, critical and unknown severities
+    - name: scan docker image for configured severities
       if: always()
       env:
-        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> security-scanning/trivy.json' || '' }}
+        REPORT: ${{ inputs.use-test-reporter == true && '-f json >> ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
       id: scan
       run: |
@@ -269,14 +302,14 @@ jobs:
     - name: convert Trivy report to CTRF format
       if: always() && ${{ inputs.use-test-reporter }}
       run: |
-        python3 security-scanning/trivyimage2ctrf.py ./security-scanning/trivy.json ./security-scanning/trivy.ctrf.json
+        python3 _security-tools/security-scanning/trivyimage2ctrf.py ./scan-results/trivy.json ./scan-results/trivy.ctrf.json
 
     - name: Publish Test Report
       uses: ctrf-io/github-test-reporter@v1
       if: always() && ${{ inputs.use-test-reporter }}
       with:
-        report-path: './security-scanning/trivy.ctrf.json'
-        template-path: './security-scanning/image_scan_template.hbs'
+        report-path: './scan-results/trivy.ctrf.json'
+        template-path: '_security-tools/security-scanning/image_scan_template.hbs'
         custom-report: true
 
   create_issues:
