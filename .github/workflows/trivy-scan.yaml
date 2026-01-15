@@ -187,12 +187,12 @@ jobs:
           ./scan-results/trivy.ctrf.json
 
     - name: Publish Test Report
-    if: always() && inputs.use-test-reporter
-    uses: ctrf-io/github-test-reporter@v1
-    with:
-      report-path: './scan-results/trivy.ctrf.json'
-      template-path: ${{ format('_security-tools/security-scanning/{0}', inputs.scan-type == 'image' && 'image_scan_template.hbs' || 'config_scan_template.hbs') }}
-      custom-report: true
+      if: always() && inputs.use-test-reporter
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './scan-results/trivy.ctrf.json'
+        template-path: ${{ format('_security-tools/security-scanning/{0}', inputs.scan-type == 'image' && 'image_scan_template.hbs' || 'config_scan_template.hbs') }}
+        custom-report: true
 
   create_issue:
     needs: [security_scan]
@@ -200,35 +200,35 @@ jobs:
     if: ${{ always() && inputs.issue-on-findings != '' && needs.security_scan.outputs.NOTIFICATION == 'true' }}
 
     steps:
-      - name: Create issue/Comment on issue
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const repo = context.repo.repo;
-            const owner = context.repo.owner;
-            const issue_title = 'Security scan failed';
-            const issue_body = 'One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
-            const assignees = [${{ inputs.issue-on-findings }}];
-            const existing_issue = await github.rest.issues.listForRepo({
-              owner,
-              repo,
-              state: 'open',
-              labels: 'security-scan-failure'
+    - name: Create issue/Comment on issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+          const issue_title = 'Security scan failed';
+          const issue_body = 'One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
+          const assignees = [${{ inputs.issue-on-findings }}];
+          const existing_issue = await github.rest.issues.listForRepo({
+            owner,
+            repo,
+            state: 'open',
+            labels: 'security-scan-failure'
+          });
+          if (existing_issue.data.length === 0) {
+          await github.rest.issues.create({
+            owner,
+            repo,
+            title: issue_title,
+            body: issue_body,
+            labels: ['security-scan-failure']
             });
-            if (existing_issue.data.length === 0) {
-            await github.rest.issues.create({
+          } else {
+            const issue_number = existing_issue.data[0].number;
+            await github.rest.issues.createComment({
               owner,
               repo,
-              title: issue_title,
-              body: issue_body,
-              labels: ['security-scan-failure']
-              });
-            } else {
-              const issue_number = existing_issue.data[0].number;
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body: issue_body
-              });
-            }
+              issue_number,
+              body: issue_body
+            });
+          }
