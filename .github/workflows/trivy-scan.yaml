@@ -187,12 +187,12 @@ jobs:
           ./scan-results/trivy.ctrf.json
 
     - name: Publish Test Report
-      if: ${{ always() && inputs.use-test-reporter }}
-      uses: ctrf-io/github-test-reporter@v1
-      with:
-        report-path: './scan-results/trivy.ctrf.json'
-        template-path: '_security-tools/security-scanning/${{ inputs.scan-type == "image" && "image_scan_template.hbs" || "config_scan_template.hbs" }}'
-        custom-report: true
+    if: always() && inputs.use-test-reporter
+    uses: ctrf-io/github-test-reporter@v1
+    with:
+      report-path: './scan-results/trivy.ctrf.json'
+      template-path: ${{ format('_security-tools/security-scanning/{0}', inputs.scan-type == 'image' && 'image_scan_template.hbs' || 'config_scan_template.hbs') }}
+      custom-report: true
 
   create_issue:
     needs: [security_scan]
