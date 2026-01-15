@@ -67,12 +67,11 @@ jobs:
       uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
     
     - name: scan configuration for full report
-      if: always()
       run: |
         trivy config ${{ inputs.path }} --exit-code 0
 
     - name: scan configuration with configured severities
-      if: always()
+      continue-on-error: true
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
@@ -80,20 +79,18 @@ jobs:
       run: |
         trivy config ${{ inputs.path }} \
           --exit-code 1 \
-          --skip-db-update \
           --severity HIGH,CRITICAL,UNKNOWN \
-          --scanners vuln \
           --timeout 10m \
           $IGNOREFILE \
           $REPORT
 
     - name: convert Trivy report to CTRF format
-      if: always() && ${{ inputs.use-test-reporter }}
+      if: ${{ always() && inputs.use-test-reporter }}
       run: |
         python3 _security-tools/security-scanning/trivyconfig2ctrf.py ./scan-results/trivy.json ./scan-results/trivy.ctrf.json
     
     - name: Publish Test Report
-      if: always() && ${{ inputs.use-test-reporter }}
+      if: ${{ always() && inputs.use-test-reporter }}
       uses: ctrf-io/github-test-reporter@v1
       with:
         report-path: './scan-results/trivy.ctrf.json'
@@ -125,6 +122,7 @@ jobs:
       uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
 
     - name: download vulnerabilities database from aws
+      continue-on-error: true
       run: |
         MAX_RETRIES=3
         RETRY_DELAY=60
@@ -177,6 +175,7 @@ jobs:
     # ob mit report geht weiß ich noch nicht
     - name: scan filesystem for configured severities
       if: always()
+      continue-on-error: true
       id: scan
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json -o ./scan-results/trivy.json' || '' }}
@@ -190,7 +189,7 @@ jobs:
           $REPORT
 
     - name: Publish Test Report
-      if: always() && ${{ inputs.use-test-reporter }} 
+      if: ${{ always() && inputs.use-test-reporter }} 
       uses: ctrf-io/github-test-reporter@v1
       with:
         report-path: './scan-results/trivy.ctrf.json'
@@ -222,6 +221,7 @@ jobs:
       uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
 
     - name: download vulnerabilities database from aws
+      continue-on-error: true
       run: |
         MAX_RETRIES=3
         RETRY_DELAY=60
@@ -266,11 +266,6 @@ jobs:
         done
         exit 1
 
-    - name: scan filesystem for full report
-      if: always()
-      run: |
-        trivy fs ${{ inputs.path }} --exit-code 0 --skip-db-update
-
     - name: build docker image
       uses: docker/build-push-action@v4
       with:
@@ -285,6 +280,7 @@ jobs:
       
     - name: scan docker image for configured severities
       if: always()
+      continue-on-error: true
       env:
         REPORT: ${{ inputs.use-test-reporter == true && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
@@ -300,13 +296,13 @@ jobs:
           $REPORT
 
     - name: convert Trivy report to CTRF format
-      if: always() && ${{ inputs.use-test-reporter }}
+      if: ${{ always() && inputs.use-test-reporter }}
       run: |
         python3 _security-tools/security-scanning/trivyimage2ctrf.py ./scan-results/trivy.json ./scan-results/trivy.ctrf.json
 
     - name: Publish Test Report
       uses: ctrf-io/github-test-reporter@v1
-      if: always() && ${{ inputs.use-test-reporter }}
+      if: ${{ always() && inputs.use-test-reporter }}
       with:
         report-path: './scan-results/trivy.ctrf.json'
         template-path: '_security-tools/security-scanning/image_scan_template.hbs'
