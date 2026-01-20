@@ -25,7 +25,7 @@ on:
         default: true
         type: boolean
       issue-on-findings:
-        description: 'One GitHub user to mention when creating an issue for failed scans (e.g., @username). If left empty, no issue will be created.'
+        description: 'One GitHub user to mention when creating an issue for failed scans (e.g., username). If left empty, no issue will be created.'
         required: false
         default: ''
         type: string
@@ -211,8 +211,8 @@ jobs:
           const repo = context.repo.repo;
           const owner = context.repo.owner;
           const issue_title = 'Security scan failed';
-          const issue_body = '${{ inputs.issue-on-findings }} One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
-          const assignees = [${{ inputs.issue-on-findings }}];
+          const issue_body = '@${{ inputs.issue-on-findings }} One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
+          const assignees = ['${{ inputs.issue-on-findings }}'];
           const existing_issue = await github.rest.issues.listForRepo({
             owner,
             repo,
