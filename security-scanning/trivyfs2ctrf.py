@@ -6,7 +6,7 @@ def extract_vulnerabilities_from_result(result):
     """Extract vulnerabilities from a Trivy result."""
     tests = []
     vulnerabilities = result.get("Vulnerabilities", [])
-    
+
     for vuln in vulnerabilities:
         tests.append({
             "name": f"{vuln.get('PkgName', '')}@{vuln.get('InstalledVersion', '')} - {vuln.get('VulnerabilityID', '')}",
@@ -26,7 +26,7 @@ def extract_vulnerabilities_from_result(result):
             "installedVersion": vuln.get("InstalledVersion", ""),
             "fixedVersion": vuln.get("FixedVersion", ""),
         })
-    
+
     return tests
 
 
@@ -34,12 +34,12 @@ def extract_secrets_from_result(result):
     """Extract secrets from a Trivy result."""
     tests = []
     secrets = result.get("Secrets", [])
-    
+
     for secret in secrets:
         lines = None
         if secret.get("StartLine") and secret.get("EndLine"):
             lines = [secret["StartLine"], secret["EndLine"]]
-        
+
         tests.append({
             "name": f"{secret.get('RuleID', '')} - {secret.get('Title', '')}",
             "status": "failed",
@@ -55,7 +55,7 @@ def extract_secrets_from_result(result):
             "type": "secret",
             "id": secret.get("RuleID", ""),
         })
-    
+
     return tests
 
 
@@ -63,26 +63,54 @@ def trivy_fs_to_ctrf(trivy_json):
     """Convert Trivy filesystem scan JSON to CTRF format."""
     tests = []
     results = trivy_json.get("Results", [])
-    
+
+    # Severity-Zählung nur für Vulnerabilities
+    severity_counts = {
+        "UNKNOWN": 0,
+        "LOW": 0,
+        "MEDIUM": 0,
+        "HIGH": 0,
+        "CRITICAL": 0
+    }
+
+    # Secrets-Zählung
+    secrets_count = 0
+
     for result in results:
+        # Tests sammeln
         tests.extend(extract_vulnerabilities_from_result(result))
         tests.extend(extract_secrets_from_result(result))
-    
+
+        # Vulnerability-Severities zählen
+        for vuln in result.get("Vulnerabilities", []):
+            sev = str(vuln.get("Severity", "")).upper().strip()
+            if sev in severity_counts:
+                severity_counts[sev] += 1
+            else:
+                severity_counts["UNKNOWN"] += 1
+
+        # Secrets zählen
+        secrets_count += len(result.get("Secrets", []) or [])
+
     failed = len(tests)
-    
+
     return {
         "results": {
             "tool": {
                 "name": "Trivy Filesystem"
             },
             "summary": {
-                "failed": failed,
+                "failed": failed
             },
             "tests": tests,
             "environment": {
                 "appName": trivy_json.get("ArtifactName", ""),
                 "buildName": trivy_json.get("Metadata", {}).get("Branch", ""),
                 "buildNumber": trivy_json.get("Metadata", {}).get("Commit", "")[:8] if trivy_json.get("Metadata", {}).get("Commit") else ""
+            },
+            "extensions": {
+                "severityCounts": severity_counts,
+                "secretsCount": secrets_count
             }
         }
     }
@@ -92,11 +120,11 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: python trivyfs2ctrf.py <input.json> <output.json>")
         sys.exit(1)
-    
+
     with open(sys.argv[1]) as f:
         trivy_json = json.load(f)
-    
+
     ctrf_json = trivy_fs_to_ctrf(trivy_json)
-    
+
     with open(sys.argv[2], "w") as f:
         json.dump(ctrf_json, f, indent=2)

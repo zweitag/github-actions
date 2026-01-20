@@ -1,8 +1,53 @@
 ## Summary of {{ctrf.tool.name}} Security Scan Results
 
-| **Failed ❌** |
-| --- |
-| {{ctrf.summary.failed}} |
+<table>
+    <thead>
+        <tr>
+            <th>Found Vulnerabilities ❌</th>
+            {{#if ctrf.extensions.severityCounts.LOW != 0}}
+            <th>LOW 🟢</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM != 0}}
+            <th>MEDIUM 🟡</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.HIGH != 0}}
+            <th>HIGH 🔴</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL != 0}}
+            <th>CRITICAL 🚨</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN != 0}}
+            <th>UNKNOWN ❓</th>
+            {{/if}}
+            {{#if ctrf.extensions.secretsCount != 0}}
+            <th>SECRETS 🔑</th>
+            {{/if}}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ctrf.summary.failed}}</td>
+            {{#if ctrf.extensions.severityCounts.LOW != 0}}
+            <td>{{ctrf.extensions.severityCounts.LOW}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM != 0}}
+            <td>{{ctrf.extensions.severityCounts.MEDIUM}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.HIGH != 0}}
+            <td>{{ctrf.extensions.severityCounts.HIGH}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL != 0}}
+            <td>{{ctrf.extensions.severityCounts.CRITICAL}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN != 0}}
+            <td>{{ctrf.extensions.severityCounts.UNKNOWN}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.secretsCount != 0}}
+            <td>{{ctrf.extensions.secretsCount}}</td>
+            {{/if}}
+        </tr>
+    </tbody>
+</table>
 
 {{#if (eq ctrf.summary.failed 0)}}
 ### No Vulnerabilities or Secrets Found! 🎉
