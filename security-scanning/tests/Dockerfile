@@ -1,7 +1,7 @@
 # security-scanning/tests/Dockerfile
 # Minimal test image for security scan workflow testing
 
-FROM alpine:3.23
+FROM scratch
 
 USER testuser
 
