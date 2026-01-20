@@ -6,3 +6,5 @@ FROM alpine:3.23
 USER testuser
 
 CMD ["echo", "This is a test image for security scan workflow testing."]
+
+HEALTHCHECK NONE
