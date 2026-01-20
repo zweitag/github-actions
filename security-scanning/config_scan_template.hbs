@@ -6,19 +6,19 @@
             <th>Tests 📝</th>
             <th>Passed ✅</th>
             <th>Failed ❌</th>
-            {{#if ctrf.extensions.severityCounts.LOW != 0}}
+            {{#if ctrf.extensions.severityCounts.LOW}}
             <th>LOW 🟢</th>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.MEDIUM != 0}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM}}
             <th>MEDIUM 🟡</th>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.HIGH != 0}}
+            {{#if ctrf.extensions.severityCounts.HIGH}}
             <th>HIGH 🔴</th>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.CRITICAL != 0}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL}}
             <th>CRITICAL 🚨</th>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.UNKNOWN != 0}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN}}
             <th>UNKNOWN ❓</th>
             {{/if}}
         </tr>
@@ -28,22 +28,22 @@
             <td>{{ctrf.summary.tests}}</td>
             <td>{{ctrf.summary.passed}}</td>
             <td>{{ctrf.summary.failed}}</td>
-            {{#if ctrf.extensions.severityCounts.LOW != 0}}
+            {{#if ctrf.extensions.severityCounts.LOW}}
             <td>{{ctrf.extensions.severityCounts.LOW}}</td>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.MEDIUM != 0}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM}}
             <td>{{ctrf.extensions.severityCounts.MEDIUM}}</td>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.HIGH != 0}}
+            {{#if ctrf.extensions.severityCounts.HIGH}}
             <td>{{ctrf.extensions.severityCounts.HIGH}}</td>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.CRITICAL != 0}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL}}
             <td>{{ctrf.extensions.severityCounts.CRITICAL}}</td>
             {{/if}}
-            {{#if ctrf.extensions.severityCounts.UNKNOWN != 0}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN}}
             <td>{{ctrf.extensions.severityCounts.UNKNOWN}}</td>
             {{/if}}
-            {{#if ctrf.extensions.secretsCount != 0}}
+            {{#if ctrf.extensions.secretsCount}}
             <td>{{ctrf.extensions.secretsCount}}</td>
             {{/if}}
         </tr>

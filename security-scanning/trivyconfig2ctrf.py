@@ -4,13 +4,13 @@ import sys
 
 def extract_checks_from_trivy_result(result):
     checks = []
-    misconfigs = result.get("Misconfigurations", [])
+    misconfigs = result.get("Misconfigurations", []) or []
     for misconf in misconfigs:
         lines = None
-        cause = misconf.get("CauseMetadata", {})
+        cause = misconf.get("CauseMetadata", {}) or {}
         if "StartLine" in cause and "EndLine" in cause:
             lines = [cause["StartLine"], cause["EndLine"]]
-        elif "Code" in cause and "Lines" in cause.get("Code", {}) and cause["Code"]["Lines"]:
+        elif "Code" in cause and "Lines" in (cause.get("Code", {}) or {}) and cause["Code"]["Lines"]:
             code_lines = cause["Code"]["Lines"]
             if isinstance(code_lines, list) and code_lines:
                 lines = [code_lines[0].get("Number"), code_lines[-1].get("Number")]
@@ -45,13 +45,12 @@ def trivy_to_ctrf(trivy_json):
         "CRITICAL": 0
     }
 
-    results = trivy_json.get("Results", [])
+    results = trivy_json.get("Results", []) or []
     for result in results:
         tests.extend(extract_checks_from_trivy_result(result))
 
-        # Successful scans have no misconfigurations
-        misconf_summary = result.get("MisconfSummary", {})
-        successes_sum += misconf_summary.get("Successes", 0)
+        misconf_summary = result.get("MisconfSummary", {}) or {}
+        successes_sum += misconf_summary.get("Successes", 0) or 0
 
         for misconf in result.get("Misconfigurations", []) or []:
             if misconf.get("Status") == "FAIL":
@@ -63,14 +62,20 @@ def trivy_to_ctrf(trivy_json):
 
     total = len(tests) + successes_sum
     passed = successes_sum
-    failed = sum(1 for t in tests if t["status"] == "failed")
+    failed = sum(1 for t in tests if t.get("status") == "failed")
     pending = 0
     skipped = 0
     other = 0
     start = 0
     stop = 1
 
-    return {
+    severity_counts_nonzero = {k: v for k, v in severity_counts.items() if v}
+    extensions = {}
+
+    if severity_counts_nonzero:
+        extensions["severityCounts"] = severity_counts_nonzero
+
+    result_obj = {
         "results": {
             "tool": {
                 "name": "Trivy Configuration"
@@ -90,12 +95,14 @@ def trivy_to_ctrf(trivy_json):
                 "appName": "kamium-elastic",
                 "buildName": "kamium-elastic",
                 "buildNumber": "1"
-            },
-            "extensions": {
-                "severityCounts": severity_counts
             }
         }
     }
+
+    if extensions:
+        result_obj["results"]["extensions"] = extensions
+
+    return result_obj
 
 
 if __name__ == "__main__":
