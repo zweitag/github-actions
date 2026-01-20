@@ -1,7 +1,6 @@
 import json
 import sys
 
-
 def extract_checks(target, status):
     # extracts checks of a check_type (e.g. terraform) with a status ('fail' oder 'pass').
     checks = []
@@ -17,12 +16,18 @@ def extract_checks(target, status):
         })
     return checks
 
-
 def checkov_to_ctrf(checkov_json):
     tests = []
-    for target in checkov_json:
-        tests.extend(extract_checks(target, "fail"))
-        tests.extend(extract_checks(target, "pass"))
+
+    if isinstance(checkov_json, list):
+        for target in checkov_json:
+            tests.extend(extract_checks(target, "fail"))
+            tests.extend(extract_checks(target, "pass"))
+    elif isinstance(checkov_json, dict):
+        tests.extend(extract_checks(checkov_json, "fail"))
+        tests.extend(extract_checks(checkov_json, "pass"))
+    else:
+        raise ValueError("Unerwartetes JSON-Format!")
 
     total = len(tests)
     passed = sum(1 for t in tests if t["status"] == "passed")
@@ -55,7 +60,6 @@ def checkov_to_ctrf(checkov_json):
             }
         }
     }
-
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
