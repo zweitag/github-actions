@@ -12,12 +12,18 @@
 ## Found Vulnerabilities:
 {{#each ctrf.tests}}
 <details>
-    <summary>❌ {{id}} {{pkgName}}</summary>
+    <summary>🔴 {{pkgName}}@{{installedVersion}} - {{id}} ({{severity}})</summary>
     <table>
         <tr>
             <th>image</th>
             <td>{{image}}</td>
         </tr>
+        {{#if package}}
+        <tr>
+            <th>package</th>
+            <td>{{package}}</td>
+        </tr>
+        {{/if}}
         {{#if installedVersion}}
         <tr>
             <th>installed version</th>
@@ -26,7 +32,7 @@
         {{/if}}
         {{#if fixedVersion}}
         <tr>
-            <th>fixed version</th>
+            <th>fixed in</th>
             <td>{{fixedVersion}}</td>
         </tr>
         {{/if}}

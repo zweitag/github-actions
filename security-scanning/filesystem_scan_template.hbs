@@ -25,7 +25,13 @@
         {{#if package}}
         <tr>
             <th>package</th>
-            <td>{{package}}@{{installedVersion}}</td>
+            <td>{{package}}</td>
+        </tr>
+        {{/if}}
+        {{#if installedVersion}}
+        <tr>
+            <th>installed version</th>
+            <td>{{installedVersion}}</td>
         </tr>
         {{/if}}
         {{#if fixedVersion}}
