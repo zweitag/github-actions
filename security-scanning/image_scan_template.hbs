@@ -62,16 +62,6 @@
             </td>
         </tr>
         {{/if}}
-        {{#if references}}
-        <tr>
-            <th>references</th>
-            <td>
-                {{#each references}}
-                <a href="{{this}}">{{this}}</a>{{#unless @last}}, {{/unless}}
-                {{/each}}
-            </td>
-        </tr>
-        {{/if}}
     </table>
 </details>
 {{/each}}
