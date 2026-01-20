@@ -19,7 +19,7 @@ on:
         required: false
         default: 'HIGH,CRITICAL,UNKNOWN'
         type: string
-      trivyignorefile:
+      ignorefile:
         description: 'Path to the Trivy ignore file (default: none)'
         default: ''
         required: false
@@ -126,7 +126,7 @@ jobs:
       continue-on-error: true
       env:
         REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
-        IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
+        IGNOREFILE: ${{ inputs.ignorefile != '' && format('--ignorefile {0}', inputs.ignorefile) || '' }}
         SEVERITY: ${{ inputs.severity-level }}
       run: |
         trivy config ${{ inputs.path }} \
@@ -142,7 +142,7 @@ jobs:
       continue-on-error: true
       env:
         REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
-        IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
+        IGNOREFILE: ${{ inputs.ignorefile != '' && format('--ignorefile {0}', inputs.ignorefile) || '' }}
         SCANNERS: ${{ !inputs.check-secrets && '--scanners vuln' || '' }}
         SEVERITY: ${{ inputs.severity-level }}
       run: |
@@ -160,7 +160,7 @@ jobs:
       continue-on-error: true
       env:
         REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
-        IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
+        IGNOREFILE: ${{ inputs.ignorefile != '' && format('--ignorefile {0}', inputs.ignorefile) || '' }}
         SEVERITY: ${{ inputs.severity-level }}
       run: |
         trivy image security-scan-image \
