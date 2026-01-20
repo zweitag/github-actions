@@ -186,7 +186,6 @@ jobs:
 - The workflow uses soft-fail-on as failure controller:
   - "": no soft-fail (the job fails on any finding)
   - "LOW" (default) | "MEDIUM" | "HIGH" | "CRITICAL": soft-fail threshold
-  - "any": soft-fail for all findings (the job never fails)
 - Findings of higher severity cause the step to fail (and may trigger issue creation).
 - You can use a baseline file to suppress known findings and reduce noise.
 

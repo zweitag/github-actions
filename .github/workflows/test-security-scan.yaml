@@ -61,6 +61,6 @@ jobs:
     name: Test Checkov Scan
     uses: ./.github/workflows/checkov-scan.yaml
     with:
-      soft-fail-on: any
+      soft-fail-on: CRITICAL
       use-test-reporter: true
       issue-on-findings: ''
