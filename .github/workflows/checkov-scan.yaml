@@ -20,9 +20,9 @@ on:
         default: true
         type: boolean
       issue-on-findings:
-        description: 'GitHub users to assign when creating an issue for failed scans (comma-separated list: ''@user1'', ''@user2''). If left empty, no issue will be created.'
+        description: 'One GitHub user to assign when creating an issue for failed scans (e.g., username). If left empty, no issue will be created.'
         required: false
-        default: 'false'
+        default: ''
         type: string
 
 jobs:
@@ -86,36 +86,36 @@ jobs:
     if: ${{ inputs.issue-on-findings != 'false' }}
 
     steps:
-      - name: Create issue/Comment on issue
-        if: ${{ always() && needs.checkov_scan.outputs.NOTIFICATION == 'true' }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const repo = context.repo.repo;
-            const owner = context.repo.owner;
-            const issue_title = 'Security scan failed';
-            const issue_body = 'One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
-            const assignees = [${{ inputs.issue-on-findings }}];
-            const existing_issue = await github.rest.issues.listForRepo({
-              owner,
-              repo,
-              state: 'open',
-              labels: 'security-scan-failure'
+    - name: Create issue/Comment on issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+          const issue_title = 'Security scan failed';
+          const issue_body = '@${{ inputs.issue-on-findings }} One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
+          const assignees = ['${{ inputs.issue-on-findings }}'];
+          const existing_issue = await github.rest.issues.listForRepo({
+            owner,
+            repo,
+            state: 'open',
+            labels: 'security-scan-failure',
+            assignees: assignees
+          });
+          if (existing_issue.data.length === 0) {
+          await github.rest.issues.create({
+            owner,
+            repo,
+            title: issue_title,
+            body: issue_body,
+            labels: ['security-scan-failure']
             });
-            if (existing_issue.data.length === 0) {
-            await github.rest.issues.create({
+          } else {
+            const issue_number = existing_issue.data[0].number;
+            await github.rest.issues.createComment({
               owner,
               repo,
-              title: issue_title,
-              body: issue_body,
-              labels: ['security-scan-failure']
-              });
-            } else {
-              const issue_number = existing_issue.data[0].number;
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body: issue_body
-              });
-            }
+              issue_number,
+              body: issue_body
+            });
+          }

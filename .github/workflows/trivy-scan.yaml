@@ -9,6 +9,16 @@ on:
         required: false
         default: 'filesystem'
         type: string
+      check-secrets:
+        description: 'Whether to check for secrets in filesystem scans (default: false)'
+        required: false
+        default: 'false'
+        type: string
+      severity-level:
+        description: 'Minimum severity level to report (default: HIGH)'
+        required: false
+        default: 'HIGH'
+        type: string
       trivyignorefile:
         description: 'Path to the Trivy ignore file (default: none)'
         default: ''
@@ -25,7 +35,7 @@ on:
         default: true
         type: boolean
       issue-on-findings:
-        description: 'One GitHub user to mention when creating an issue for failed scans (e.g., username). If left empty, no issue will be created.'
+        description: 'One GitHub user to assign when creating an issue for failed scans (e.g., username). If left empty, no issue will be created.'
         required: false
         default: ''
         type: string
@@ -117,10 +127,11 @@ jobs:
       env:
         REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
+        SEVERITY: ${{ inputs.severity-level }}
       run: |
         trivy config ${{ inputs.path }} \
           --exit-code 1 \
-          --severity HIGH,CRITICAL,UNKNOWN \
+          --severity $SEVERITY \
           --timeout 10m \
           $IGNOREFILE \
           $REPORT
@@ -132,12 +143,14 @@ jobs:
       env:
         REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
+        SCANNERS: ${{ inputs.check-secrets != 'true' && '--scanners vuln' || '' }}
+        SEVERITY: ${{ inputs.severity-level }}
       run: |
         trivy fs ${{ inputs.path }} \
           --exit-code 1 \
-          --scanners vuln \
           --skip-db-update \
-          --severity MEDIUM,HIGH,CRITICAL,UNKNOWN \
+          --severity $SEVERITY \
+          $SCANNERS \
           $IGNOREFILE \
           $REPORT
 
@@ -148,11 +161,12 @@ jobs:
       env:
         REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
+        SEVERITY: ${{ inputs.severity-level }}
       run: |
         trivy image security-scan-image \
           --exit-code 1 \
           --skip-db-update \
-          --severity HIGH,CRITICAL,UNKNOWN \
+          --severity $SEVERITY \
           --scanners vuln \
           --timeout 10m \
           $IGNOREFILE \
@@ -217,7 +231,8 @@ jobs:
             owner,
             repo,
             state: 'open',
-            labels: 'security-scan-failure'
+            labels: 'security-scan-failure',
+            assignees: assignees
           });
           if (existing_issue.data.length === 0) {
           await github.rest.issues.create({
