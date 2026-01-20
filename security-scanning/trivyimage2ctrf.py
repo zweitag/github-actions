@@ -4,9 +4,8 @@ import sys
 
 def extract_checks_from_trivy_result(target):
     checks = []
-    
     vulnerabilities = target.get("Vulnerabilities", [])
-    
+
     for vuln in vulnerabilities:
         checks.append({
             "name": vuln.get("PkgID", ""),
@@ -28,22 +27,41 @@ def extract_checks_from_trivy_result(target):
 def trivy_to_ctrf(trivy_json):
     tests = []
     successes_sum = 0
+    severity_counts = {
+        "UNKNOWN": 0,
+        "LOW": 0,
+        "MEDIUM": 0,
+        "HIGH": 0,
+        "CRITICAL": 0
+    }
+
     results = trivy_json.get("Results", [])
     for result in results:
-        tests.extend(extract_checks_from_trivy_result(result))
+        # Sammle Checks/Testeinträge
+        result_checks = extract_checks_from_trivy_result(result)
+        tests.extend(result_checks)
 
-        # Successful scans have no misconfigurations
+        # Summiere Misconfig-Erfolgswerte (nicht genutzt, bleibt aber erhalten)
         misconf_summary = result.get("MisconfSummary", {})
         successes_sum += misconf_summary.get("Successes", 0)
 
+    # Zähle Severity über alle Tests
+    for t in tests:
+        sev = str(t.get("severity", "")).upper().strip()
+        if sev in severity_counts:
+            severity_counts[sev] += 1
+        else:
+            severity_counts["UNKNOWN"] += 1
+
     total = len(tests)
-    passed = 0 
+    passed = 0
     failed = len(tests)
     pending = 0
     skipped = 0
     other = 0
     start = 0
     stop = 1
+
     return {
         "results": {
             "tool": {
@@ -64,6 +82,9 @@ def trivy_to_ctrf(trivy_json):
                 "appName": "kamium-elastic",
                 "buildName": "kamium-elastic",
                 "buildNumber": "1"
+            },
+            "extensions": {
+                "severityCounts": severity_counts
             }
         }
     }

@@ -1,5 +1,11 @@
 ## Summary of {{ctrf.tool.name}} Security Scan Results
 
+| **LOW** | **MEDIUM** | **HIGH** | **CRITICAL** | **UNKNOWN** |
+| --- | --- | --- | --- | --- |
+| {{ctrf.results.extensions.severityCounts.LOW}} | {{ctrf.results.extensions.severityCounts.MEDIUM}} |
+{{ctrf.results.extensions.severityCounts.HIGH}} | {{ctrf.results.extensions.severityCounts.CRITICAL}} |
+{{ctrf.results.extensions.severityCounts.UNKNOWN}} |
+
 {{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
 ### No vulnerabilities with set severity found! 🎉
 {{else}}
