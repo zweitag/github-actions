@@ -3,7 +3,6 @@
 <table>
     <thead>
         <tr>
-            <th>Found Vulnerabilities ❌</th>
             {{#if ctrf.extensions.severityCounts.LOW}}
             <th>LOW 🟢</th>
             {{/if}}
@@ -26,7 +25,6 @@
     </thead>
     <tbody>
         <tr>
-            <td>{{ctrf.summary.failed}}</td>
             {{#if ctrf.extensions.severityCounts.LOW}}
             <td>{{ctrf.extensions.severityCounts.LOW}}</td>
             {{/if}}
