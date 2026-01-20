@@ -231,8 +231,7 @@ jobs:
             owner,
             repo,
             state: 'open',
-            labels: 'security-scan-failure',
-            assignees: assignees
+            labels: 'security-scan-failure'
           });
           if (existing_issue.data.length === 0) {
           await github.rest.issues.create({
@@ -241,6 +240,7 @@ jobs:
             title: issue_title,
             body: issue_body,
             labels: ['security-scan-failure']
+            assignees: assignees
             });
           } else {
             const issue_number = existing_issue.data[0].number;
