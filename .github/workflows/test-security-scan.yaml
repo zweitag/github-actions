@@ -63,4 +63,5 @@ jobs:
     with:
       soft-fail-on: CRITICAL
       use-test-reporter: true
+      baseline: '.checkov.baseline'
       issue-on-findings: ''
