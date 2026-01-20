@@ -1,0 +1,66 @@
+# .github/workflows/test-security-scan.yaml
+name: Test Security Scan Workflows
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/trivy-scan.yaml'
+      - '.github/workflows/checkov-scan.yaml'
+      - '.github/workflows/test-security-scan.yaml'
+      - 'security-scanning/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/trivy-scan.yaml'
+      - '.github/workflows/checkov-scan.yaml'
+      - '.github/workflows/test-security-scan.yaml'
+      - 'security-scanning/**'
+
+jobs:
+  # Trivy Scan Tests
+
+  test-trivy-filesystem:
+    name: Test Trivy Filesystem Scan
+    uses: ./.github/workflows/trivy-scan.yaml
+    with:
+      scan-type: filesystem
+      severity-level: CRITICAL
+      use-test-reporter: true
+      check-secrets: true
+      issue-on-findings: ''
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-trivy-config:
+    name: Test Trivy Config Scan
+    uses: ./.github/workflows/trivy-scan.yaml
+    with:
+      scan-type: config
+      severity-level: CRITICAL
+      use-test-reporter: true
+      issue-on-findings: ''
+
+  test-trivy-image:
+    name: Test Trivy Image Scan
+    uses: ./.github/workflows/trivy-scan.yaml
+    with:
+      scan-type: image
+      path: './security-scanning/tests'
+      severity-level: CRITICAL
+      use-test-reporter: true
+      issue-on-findings: ''
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ==========================================
+  # Checkov Scan Tests
+  # ==========================================
+
+  test-checkov:
+    name: Test Checkov Scan
+    uses: ./.github/workflows/checkov-scan.yaml
+    with:
+      soft-fail-on: any
+      use-test-reporter: true
+      issue-on-findings: ''
