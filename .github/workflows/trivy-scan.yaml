@@ -12,8 +12,8 @@ on:
       check-secrets:
         description: 'Whether to check for secrets in filesystem scans (default: false)'
         required: false
-        default: 'false'
-        type: string
+        default: false
+        type: boolean
       severity-level:
         description: 'Minimum severity level to report (default: HIGH)'
         required: false
@@ -143,7 +143,7 @@ jobs:
       env:
         REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
         IGNOREFILE: ${{ inputs.trivyignorefile != '' && format('--ignorefile {0}', inputs.trivyignorefile) || '' }}
-        SCANNERS: ${{ inputs.check-secrets != 'true' && '--scanners vuln' || '' }}
+        SCANNERS: ${{ !inputs.check-secrets && '--scanners vuln' || '' }}
         SEVERITY: ${{ inputs.severity-level }}
       run: |
         trivy fs ${{ inputs.path }} \
