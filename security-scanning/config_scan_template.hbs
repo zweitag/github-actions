@@ -11,7 +11,7 @@
 {{#each ctrf.tests}}
 {{#if (eq status "failed")}}
 <details>
-    <summary>🔴 {{name}}</summary>
+    <summary>🔴 {{file}} - {{name}} ({{severity}})</summary>
     <table>
         <tr>
             <th>file</th>
