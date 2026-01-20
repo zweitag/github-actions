@@ -1,10 +1,25 @@
 ## Summary of {{ctrf.tool.name}} Security Scan Results
 
-| **LOW** | **MEDIUM** | **HIGH** | **CRITICAL** | **UNKNOWN** |
-| --- | --- | --- | --- | --- |
-| {{ctrf.results.extensions.severityCounts.LOW}} | {{ctrf.results.extensions.severityCounts.MEDIUM}} |
-{{ctrf.results.extensions.severityCounts.HIGH}} | {{ctrf.results.extensions.severityCounts.CRITICAL}} |
-{{ctrf.results.extensions.severityCounts.UNKNOWN}} |
+<table>
+    <thead>
+        <tr>
+            <th>LOW</th>
+            <th>MEDIUM</th>
+            <th>HIGH</th>
+            <th>CRITICAL</th>
+            <th>UNKNOWN</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ctrf.extensions.severityCounts.LOW}}</td>
+            <td>{{ctrf.extensions.severityCounts.MEDIUM}}</td>
+            <td>{{ctrf.extensions.severityCounts.HIGH}}</td>
+            <td>{{ctrf.extensions.severityCounts.CRITICAL}}</td>
+            <td>{{ctrf.extensions.severityCounts.UNKNOWN}}</td>
+        </tr>
+    </tbody>
+</table>
 
 {{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
 ### No vulnerabilities with set severity found! 🎉
