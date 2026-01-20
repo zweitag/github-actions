@@ -15,9 +15,9 @@ on:
         default: false
         type: boolean
       severity-level:
-        description: 'Minimum severity level to report (default: HIGH)'
+        description: 'Severity levels to report (default: HIGH,CRITICAL,UNKNOWN)'
         required: false
-        default: 'HIGH'
+        default: 'HIGH,CRITICAL,UNKNOWN'
         type: string
       trivyignorefile:
         description: 'Path to the Trivy ignore file (default: none)'
