@@ -1,0 +1,71 @@
+## Summary of {{ctrf.tool.name}} Security Scan Results
+
+| **Failed ❌** |
+| --- |
+| {{ctrf.summary.failed}} |
+
+{{#if (eq ctrf.summary.failed 0)}}
+### No Vulnerabilities or Secrets Found! 🎉
+{{else}}
+## Findings:
+{{#each ctrf.tests}}
+<details>
+    <summary>{{#if (eq type "secret")}}🔑{{else}}🔴{{/if}} {{name}} ({{severity}})</summary>
+    <table>
+        <tr>
+            <th>file</th>
+            <td>{{file}}</td>
+        </tr>
+        {{#if lines}}
+        <tr>
+            <th>lines</th>
+            <td>{{lines}}</td>
+        </tr>
+        {{/if}}
+        {{#if package}}
+        <tr>
+            <th>package</th>
+            <td>{{package}}@{{installedVersion}}</td>
+        </tr>
+        {{/if}}
+        {{#if fixedVersion}}
+        <tr>
+            <th>fixed in</th>
+            <td>{{fixedVersion}}</td>
+        </tr>
+        {{/if}}
+        {{#if guideline}}
+        <tr>
+            <th>details</th>
+            <td>
+                <a href="{{guideline}}">{{guideline}}</a>
+            </td>
+        </tr>
+        {{/if}}
+        {{#if description}}
+        <tr>
+            <th>description</th>
+            <td>{{description}}</td>
+        </tr>
+        {{/if}}
+        {{#if resolution}}
+        <tr>
+            <th>proposed solution</th>
+            <td>{{resolution}}</td>
+        </tr>
+        {{/if}}
+        {{#if references}}
+        <tr>
+            <th>references</th>
+            <td>
+                {{#each references}}
+                <a href="{{this}}">{{this}}</a>{{#unless @last}}, {{/unless}}
+                {{/each}}
+            </td>
+        </tr>
+        {{/if}}
+    </table>
+</details>
+
+{{/each}}
+{{/if}}
