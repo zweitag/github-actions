@@ -4,7 +4,7 @@ name: Security Scan
 on:
   workflow_call:
     inputs:
-      checkovbaseline:
+      baseline:
         description: 'Path to the Checkov baseline file (default: none)'
         default: ''
         required: false
@@ -13,6 +13,11 @@ on:
         description: 'Directory path where the scan should be performed (default: .)'
         required: false
         default: '.'
+        type: string
+      soft-fail-on:
+        description: 'Lowest severity level to cause a failed scan (default: LOW)'
+        required: false
+        default: 'LOW'
         type: string
       use-test-reporter:
         description: 'Attach the test results as a report (default: true)'
@@ -57,13 +62,14 @@ jobs:
       - name: run Checkov
         id: scan
         env:
-          BASELINE: ${{ inputs.checkovbaseline != '' && format('--baseline {0}', inputs.checkovbaseline) || '' }}
+          BASELINE: ${{ inputs.baseline != '' && format('--baseline {0}', inputs.baseline) || '' }}
+          SOFTFAIL: ${{ inputs.soft-fail-on != '' && format('--soft-fail-on {0}', inputs.soft-fail-on) || '' }}
         run: |
           checkov \
             --directory ${{ inputs.path }} \
             --output json \
             $BASELINE \
-            --soft-fail-on LOW > ./scan-results/checkov.json
+            $SOFTFAIL > ./scan-results/checkov.json
   
       - name: convert Checkov report to CTRF format
         if: always() && inputs.use-test-reporter

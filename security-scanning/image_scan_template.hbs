@@ -44,7 +44,7 @@
 {{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
 ### No vulnerabilities with set severity found! 🎉
 {{else}}
-## Found Vulnerabilities:
+## Findings:
 {{#each ctrf.tests}}
 <details>
     <summary>🔴 {{pkgName}}@{{installedVersion}} - {{id}} ({{severity}})</summary>
