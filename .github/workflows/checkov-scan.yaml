@@ -89,7 +89,7 @@ jobs:
   create_issue:
     needs: [checkov_scan]
     runs-on: ubuntu-latest
-    if: ${{ inputs.issue-on-findings != 'false' }}
+    if: ${{ inputs.issue-on-findings != '' && needs.checkov_scan.outputs.NOTIFICATION == 'true' }}
 
     steps:
     - name: Create issue/Comment on issue
