@@ -64,7 +64,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: zweitag/github-actions
-        ref: chore--create-configurable-Security-Scan
+        ref: main
         path: _security-tools
         sparse-checkout: security-scanning
 
