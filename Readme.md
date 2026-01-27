@@ -43,11 +43,7 @@ ANOTHER_KEY=VALUE2
 
 ## trivy-scan
 
-<p align="left">
-  <a href="https://github.com/zweitag/github-actions/actions"><img alt="GitHub Actions status" src="https://github.com/zweitag/github-actions/workflows/trivy-scan/badge.svg"></a>
-</p>
-
-This Action is part of the Security-Scanning Actions. This Action is for Security-Scanning with [Trivy](https://github.com/aquasecurity/trivy) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features. 
+This reusable workflow is part of the Security-Scanning workflows. This workflow is for Security-Scanning with [Trivy](https://github.com/aquasecurity/trivy) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features. 
 
 It runs Trivy scans (filesystem, image, or configuration), converts the results into a standardized CTRF report, renders a human-friendly summary via Handlebars templates in the job output, and optionally creates or comments on a GitHub Issue when findings cause the scan to fail.
 
@@ -124,11 +120,7 @@ jobs:
 
 ## checkov-scan
 
-<p align="left">
-  <a href="https://github.com/zweitag/github-actions/actions"><img alt="GitHub Actions status" src="https://github.com/zweitag/github-actions/workflows/checkov-scan/badge.svg"></a>
-</p>
-
-This Action is part of the Security-Scanning Actions. This Action is for Security-Scanning with [Checkov](https://github.com/bridgecrewio/checkov) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features. 
+This reusable workflow  is part of the Security-Scanning workflows. This workflow is for Security-Scanning with [Checkov](https://github.com/bridgecrewio/checkov) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features. 
 
 It runs Checkov scans , converts the results into a standardized CTRF report, renders a human-friendly summary via Handlebars templates in the job output, and optionally creates or comments on a GitHub Issue when findings cause the scan to fail.
 
