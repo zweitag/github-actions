@@ -1,0 +1,120 @@
+## Summary of {{ctrf.tool.name}} Security Scan Results
+
+<table>
+    <thead>
+        <tr>
+            {{#if ctrf.extensions.severityCounts.LOW}}
+            <th>LOW 🟢</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM}}
+            <th>MEDIUM 🟡</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.HIGH}}
+            <th>HIGH 🔴</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL}}
+            <th>CRITICAL 🚨</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN}}
+            <th>UNKNOWN ❓</th>
+            {{/if}}
+            {{#if ctrf.extensions.secretsCount}}
+            <th>SECRETS 🔑</th>
+            {{/if}}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            {{#if ctrf.extensions.severityCounts.LOW}}
+            <td>{{ctrf.extensions.severityCounts.LOW}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM}}
+            <td>{{ctrf.extensions.severityCounts.MEDIUM}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.HIGH}}
+            <td>{{ctrf.extensions.severityCounts.HIGH}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL}}
+            <td>{{ctrf.extensions.severityCounts.CRITICAL}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN}}
+            <td>{{ctrf.extensions.severityCounts.UNKNOWN}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.secretsCount}}
+            <td>{{ctrf.extensions.secretsCount}}</td>
+            {{/if}}
+        </tr>
+    </tbody>
+</table>
+
+{{#if (eq ctrf.summary.failed 0)}}
+### No Vulnerabilities or Secrets Found! 🎉
+{{else}}
+## Findings:
+{{#each ctrf.tests}}
+<details>
+    <summary>{{#if (eq type "secret")}}🔑{{else}}🔴{{/if}} {{name}} ({{severity}})</summary>
+    <table>
+        <tr>
+            <th>file</th>
+            <td>{{file}}</td>
+        </tr>
+        {{#if lines}}
+        <tr>
+            <th>lines</th>
+            <td>{{lines}}</td>
+        </tr>
+        {{/if}}
+        {{#if package}}
+        <tr>
+            <th>package</th>
+            <td>{{package}}</td>
+        </tr>
+        {{/if}}
+        {{#if installedVersion}}
+        <tr>
+            <th>installed version</th>
+            <td>{{installedVersion}}</td>
+        </tr>
+        {{/if}}
+        {{#if fixedVersion}}
+        <tr>
+            <th>fixed in</th>
+            <td>{{fixedVersion}}</td>
+        </tr>
+        {{/if}}
+        {{#if guideline}}
+        <tr>
+            <th>details</th>
+            <td>
+                <a href="{{guideline}}">{{guideline}}</a>
+            </td>
+        </tr>
+        {{/if}}
+        {{#if description}}
+        <tr>
+            <th>description</th>
+            <td>{{description}}</td>
+        </tr>
+        {{/if}}
+        {{#if resolution}}
+        <tr>
+            <th>proposed solution</th>
+            <td>{{resolution}}</td>
+        </tr>
+        {{/if}}
+        {{#if references}}
+        <tr>
+            <th>references</th>
+            <td>
+                {{#each references}}
+                <a href="{{this}}">{{this}}</a>{{#unless @last}}, {{/unless}}
+                {{/each}}
+            </td>
+        </tr>
+        {{/if}}
+    </table>
+</details>
+
+{{/each}}
+{{/if}}

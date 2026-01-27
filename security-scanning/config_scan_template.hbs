@@ -1,0 +1,113 @@
+## Summary of {{ctrf.tool.name}} Security Scan Results
+
+<table>
+    <thead>
+        <tr>
+            <th>Tests 📝</th>
+            <th>Passed ✅</th>
+            <th>Failed ❌</th>
+            {{#if ctrf.extensions.severityCounts.LOW}}
+            <th>LOW 🟢</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM}}
+            <th>MEDIUM 🟡</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.HIGH}}
+            <th>HIGH 🔴</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL}}
+            <th>CRITICAL 🚨</th>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN}}
+            <th>UNKNOWN ❓</th>
+            {{/if}}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ctrf.summary.tests}}</td>
+            <td>{{ctrf.summary.passed}}</td>
+            <td>{{ctrf.summary.failed}}</td>
+            {{#if ctrf.extensions.severityCounts.LOW}}
+            <td>{{ctrf.extensions.severityCounts.LOW}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.MEDIUM}}
+            <td>{{ctrf.extensions.severityCounts.MEDIUM}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.HIGH}}
+            <td>{{ctrf.extensions.severityCounts.HIGH}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.CRITICAL}}
+            <td>{{ctrf.extensions.severityCounts.CRITICAL}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.severityCounts.UNKNOWN}}
+            <td>{{ctrf.extensions.severityCounts.UNKNOWN}}</td>
+            {{/if}}
+            {{#if ctrf.extensions.secretsCount}}
+            <td>{{ctrf.extensions.secretsCount}}</td>
+            {{/if}}
+        </tr>
+    </tbody>
+</table>
+
+{{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
+### All Tests Passed! 🎉
+{{else}}
+## Findings:
+{{#each ctrf.tests}}
+{{#if (eq status "failed")}}
+<details>
+    <summary>🔴 {{file}} - {{name}} ({{severity}})</summary>
+    <table>
+        <tr>
+            <th>file</th>
+            <td>{{file}}</td>
+        </tr>
+        {{#if lines}}
+        <tr>
+            <th>lines</th>
+            <td>{{lines}}</td>
+        </tr>
+        {{/if}}
+        {{#if severity}}
+        <tr>
+            <th>severity</th>
+            <td>{{severity}}</td>
+        </tr>
+        {{/if}}
+        {{#if guideline}}
+        <tr>
+            <th>guideline</th>
+            <td>
+                <a href="{{docs.prismacloud.io}}">{{guideline}}</a>
+            </td>
+        </tr>
+        {{/if}}
+        {{#if description}}
+        <tr>
+            <th>description</th>
+            <td>{{description}}</td>
+        </tr>
+        {{/if}}
+        {{#if resolution}}
+        <tr>
+            <th>proposed solution</th>
+            <td>{{resolution}}</td>
+        </tr>
+        {{/if}}
+        {{#if references}}
+        <tr>
+            <th>references</th>
+            <td>
+                {{#each references}}
+                <a href="{{this}}">{{this}}</a>{{#unless @last}}, {{/unless}}
+                {{/each}}
+            </td>
+        </tr>
+        {{/if}}
+    </table>
+</details>
+
+{{/if}}
+{{/each}}
+{{/if}}

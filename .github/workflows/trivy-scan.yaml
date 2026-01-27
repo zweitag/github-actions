@@ -1,0 +1,251 @@
+# .github/workflows/trivy-scan.yaml
+name: Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      scan-type:
+        description: 'Type of scan to perform: "image", "filesystem" (default), or "config"'
+        required: false
+        default: 'filesystem'
+        type: string
+      check-secrets:
+        description: 'Whether to check for secrets in filesystem scans (default: false)'
+        required: false
+        default: false
+        type: boolean
+      severity-level:
+        description: 'Severity levels to report (default: HIGH,CRITICAL,UNKNOWN)'
+        required: false
+        default: 'HIGH,CRITICAL,UNKNOWN'
+        type: string
+      ignorefile:
+        description: 'Path to the Trivy ignore file (default: none)'
+        default: ''
+        required: false
+        type: string
+      path:
+        description: 'Directory path where the scan should be performed (default: .) (for image scans, the directory must contain the Dockerfile)'
+        required: false
+        default: '.'
+        type: string
+      use-test-reporter:
+        description: 'Whether to attach the test results as a report (default: true)'
+        required: false
+        default: true
+        type: boolean
+      issue-on-findings:
+        description: 'One GitHub user to mention when creating an issue for failed scans (e.g., username). If left empty, no issue will be created.'
+        required: false
+        default: ''
+        type: string
+    secrets:
+      GH_TOKEN:
+        description: 'GitHub Token for downloading the Trivy DB'
+        required: false
+      DOCKER_IMAGE_SECRETS:
+        description: 'Docker Image Build Secrets'
+        required: false
+
+env:
+  TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db,aquasec/trivy-db,ghcr.io/aquasecurity/trivy-db
+
+jobs:
+  security_scan:
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v4
+
+    - name: checkout security-scanning scripts
+      uses: actions/checkout@v4
+      with:
+        repository: zweitag/github-actions
+        ref: chore--create-configurable-Security-Scan
+        path: _security-tools
+        sparse-checkout: security-scanning
+
+    - name: create output folder
+      run: mkdir -p ./scan-results
+
+    - name: setup trivy
+      uses: aquasecurity/setup-trivy@v0.2.5
+      
+    - name: download vulnerabilities database
+      if: inputs.scan-type != 'config'
+      run: |
+        MAX_RETRIES=3
+        RETRY_DELAY=60
+        ATTEMPT=1
+        
+        until [ $ATTEMPT -gt $MAX_RETRIES ]
+        do
+          echo "Attempt $ATTEMPT of $MAX_RETRIES..."
+          GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only --db-repository "${{ env.TRIVY_DB_REPOSITORY }}"
+
+          if [ $? -eq 0 ]; then
+            echo "Trivy DB download succeeded."
+            exit 0
+          else
+            echo "Trivy DB download failed. Retrying in $RETRY_DELAY seconds..."
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep $RETRY_DELAY
+          fi
+        done
+        
+        echo "Trying fallback without custom repository..."
+        GITHUB_TOKEN=${{ secrets.GH_TOKEN }} trivy fs --download-db-only
+
+    - name: scan for full report (config)
+      if: inputs.scan-type == 'config'
+      run: trivy config ${{ inputs.path }} --exit-code 0
+
+    - name: scan for full report (filesystem)
+      if: inputs.scan-type == 'filesystem'
+      run: trivy fs ${{ inputs.path }} --exit-code 0 --skip-db-update
+
+    - name: build docker image
+      if: inputs.scan-type == 'image'
+      uses: docker/build-push-action@v4
+      with:
+        context: ${{ inputs.path }}
+        push: false
+        tags: security-scan-image
+        secrets: ${{ secrets.DOCKER_IMAGE_SECRETS }}
+
+    - name: scan for full report (image)
+      if: inputs.scan-type == 'image'
+      run: trivy image security-scan-image --exit-code 0 --skip-db-update --scanners vuln --timeout 10m --list-all-pkgs
+
+    - name: scan with configured severities (config)
+      if: inputs.scan-type == 'config'
+      id: scan-config
+      continue-on-error: true
+      env:
+        REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
+        IGNOREFILE: ${{ inputs.ignorefile != '' && format('--ignorefile {0}', inputs.ignorefile) || '' }}
+        SEVERITY: ${{ inputs.severity-level }}
+      run: |
+        trivy config ${{ inputs.path }} \
+          --exit-code 1 \
+          --severity $SEVERITY \
+          --timeout 10m \
+          $IGNOREFILE \
+          $REPORT
+
+    - name: scan with configured severities (filesystem)
+      if: inputs.scan-type == 'filesystem'
+      id: scan-filesystem
+      continue-on-error: true
+      env:
+        REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
+        IGNOREFILE: ${{ inputs.ignorefile != '' && format('--ignorefile {0}', inputs.ignorefile) || '' }}
+        SCANNERS: ${{ !inputs.check-secrets && '--scanners vuln' || '' }}
+        SEVERITY: ${{ inputs.severity-level }}
+      run: |
+        trivy fs ${{ inputs.path }} \
+          --exit-code 1 \
+          --skip-db-update \
+          --severity $SEVERITY \
+          $SCANNERS \
+          $IGNOREFILE \
+          $REPORT
+
+    - name: scan with configured severities (image)
+      if: inputs.scan-type == 'image'
+      id: scan-image
+      continue-on-error: true
+      env:
+        REPORT: ${{ inputs.use-test-reporter && '-f json -o ./scan-results/trivy.json' || '' }}
+        IGNOREFILE: ${{ inputs.ignorefile != '' && format('--ignorefile {0}', inputs.ignorefile) || '' }}
+        SEVERITY: ${{ inputs.severity-level }}
+      run: |
+        trivy image security-scan-image \
+          --exit-code 1 \
+          --skip-db-update \
+          --severity $SEVERITY \
+          --scanners vuln \
+          --timeout 10m \
+          $IGNOREFILE \
+          $REPORT
+
+    - name: set scan outcome
+      id: scan
+      if: always()
+      run: |
+        if [[ "${{ steps.scan-config.outcome }}" == "failure" ]] || \
+           [[ "${{ steps.scan-filesystem.outcome }}" == "failure" ]] || \
+           [[ "${{ steps.scan-image.outcome }}" == "failure" ]]; then
+          echo "outcome=failure" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: convert Trivy report to CTRF format (config)
+      if: always() && inputs.use-test-reporter && inputs.scan-type == 'config'
+      run: |
+        python3 _security-tools/security-scanning/trivyconfig2ctrf.py \
+          ./scan-results/trivy.json \
+          ./scan-results/trivy.ctrf.json
+
+    - name: convert Trivy report to CTRF format (image)
+      if: ${{ always() && inputs.use-test-reporter && inputs.scan-type == 'image' }}
+      run: |
+        python3 _security-tools/security-scanning/trivyimage2ctrf.py \
+          ./scan-results/trivy.json \
+          ./scan-results/trivy.ctrf.json
+
+    - name: convert Trivy report to CTRF format (filessystem)
+      if: ${{ always() && inputs.use-test-reporter && inputs.scan-type == 'filesystem' }}
+      run: |
+        python3 _security-tools/security-scanning/trivyfs2ctrf.py \
+          ./scan-results/trivy.json \
+          ./scan-results/trivy.ctrf.json
+
+    - name: Publish Test Report
+      if: always() && inputs.use-test-reporter
+      uses: ctrf-io/github-test-reporter@v1
+      with:
+        report-path: './scan-results/trivy.ctrf.json'
+        template-path: ${{ format('_security-tools/security-scanning/{0}_scan_template.hbs', inputs.scan-type) }}
+        custom-report: true
+
+  create_issue:
+    needs: [security_scan]
+    runs-on: ubuntu-latest
+    if: ${{ always() && inputs.issue-on-findings != '' && needs.security_scan.outputs.NOTIFICATION == 'true' }}
+
+    steps:
+    - name: Create issue/Comment on issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+          const issue_title = 'Security scan failed';
+          const issue_body = '@${{ inputs.issue-on-findings }} One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
+          const existing_issue = await github.rest.issues.listForRepo({
+            owner,
+            repo,
+            state: 'open',
+            labels: 'security-scan-failure'
+          });
+          if (existing_issue.data.length === 0) {
+          await github.rest.issues.create({
+            owner,
+            repo,
+            title: issue_title,
+            body: issue_body,
+            labels: ['security-scan-failure']
+            });
+          } else {
+            const issue_number = existing_issue.data[0].number;
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body: issue_body
+            });
+          }

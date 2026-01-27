@@ -1,0 +1,125 @@
+# .github/workflows/security-scan.yaml
+name: Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      baseline:
+        description: 'Path to the Checkov baseline file (default: none)'
+        default: ''
+        required: false
+        type: string
+      path:
+        description: 'Directory path where the scan should be performed (default: .)'
+        required: false
+        default: '.'
+        type: string
+      soft-fail-on:
+        description: 'Lowest severity level to cause a failed scan (default: LOW)'
+        required: false
+        default: 'LOW'
+        type: string
+      use-test-reporter:
+        description: 'Attach the test results as a report (default: true)'
+        required: false
+        default: true
+        type: boolean
+      issue-on-findings:
+        description: 'One GitHub user to mention when creating an issue for failed scans (e.g., username). If left empty, no issue will be created.'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+
+  checkov_scan:
+    outputs:
+      NOTIFICATION: ${{ steps.scan.outcome == 'failure' && 'true' || 'false' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+  
+      - name: checkout security-scanning scripts
+        uses: actions/checkout@v4
+        with:
+          repository: zweitag/github-actions
+          ref: chore--create-configurable-Security-Scan
+          path: _security-tools
+          sparse-checkout: security-scanning
+  
+      - name: create output folder
+        run: mkdir -p ./scan-results
+  
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+  
+      - name: setup Checkov
+        run: pip install checkov
+  
+      - name: run Checkov
+        id: scan
+        env:
+          BASELINE: ${{ inputs.baseline != '' && format('--baseline {0}', inputs.baseline) || '' }}
+          SOFTFAIL: ${{ inputs.soft-fail-on != '' && format('--soft-fail-on {0}', inputs.soft-fail-on) || '' }}
+        run: |
+          checkov \
+            --directory ${{ inputs.path }} \
+            --output json \
+            $BASELINE \
+            $SOFTFAIL > ./scan-results/checkov.json
+  
+      - name: convert Checkov report to CTRF format
+        if: always() && inputs.use-test-reporter
+        run: |
+          python3 _security-tools/security-scanning/checkov2ctrf.py \
+            ./scan-results/checkov.json \
+            ./scan-results/checkov.ctrf.json
+  
+      - name: Publish Test Report
+        if: always() && inputs.use-test-reporter
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: './scan-results/checkov.ctrf.json'
+          template-path: '_security-tools/security-scanning/config_scan_template.hbs'
+          custom-report: true
+
+  create_issue:
+    needs: [checkov_scan]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.issue-on-findings != '' && needs.checkov_scan.outputs.NOTIFICATION == 'true' }}
+
+    steps:
+    - name: Create issue/Comment on issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const repo = context.repo.repo;
+          const owner = context.repo.owner;
+          const issue_title = 'Security scan failed';
+          const issue_body = '@${{ inputs.issue-on-findings }} One or more security scans failed. Please check the workflow run for more information: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\nPlease check if the vulnerabilities are fixable. If there is a fix: Create a ticket for the fix or resolve it.\n'
+          const existing_issue = await github.rest.issues.listForRepo({
+            owner,
+            repo,
+            state: 'open',
+            labels: 'security-scan-failure'
+          });
+          if (existing_issue.data.length === 0) {
+          await github.rest.issues.create({
+            owner,
+            repo,
+            title: issue_title,
+            body: issue_body,
+            labels: ['security-scan-failure']
+            });
+          } else {
+            const issue_number = existing_issue.data[0].number;
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body: issue_body
+            });
+          }
