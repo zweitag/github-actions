@@ -72,7 +72,7 @@ jobs:
       run: mkdir -p ./scan-results
 
     - name: setup trivy
-      uses: aquasecurity/setup-trivy@latest
+      uses: aquasecurity/setup-trivy@v0.2.5
       
     - name: download vulnerabilities database
       if: inputs.scan-type != 'config'
