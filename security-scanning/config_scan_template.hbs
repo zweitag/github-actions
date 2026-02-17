@@ -1,5 +1,6 @@
 ## Summary of {{ctrf.tool.name}} Security Scan Results
 
+{{#if ctrf.summary.tests }}
 <table>
     <thead>
         <tr>
@@ -49,6 +50,11 @@
         </tr>
     </tbody>
 </table>
+{{else}}
+{{#if (eq ctrf.tool.name "Checkov")}}
+<p>No differences to Baseline found</p>
+{{/if}}
+{{/if}}
 
 {{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
 ### All Tests Passed! 🎉
