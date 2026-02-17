@@ -29,6 +29,7 @@ jobs:
       use-test-reporter: true
       check-secrets: true
       issue-on-findings: ''
+      security-tools-ref: ${{ github.head_ref || github.ref_name }}
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -40,6 +41,7 @@ jobs:
       severity-level: CRITICAL
       use-test-reporter: true
       issue-on-findings: ''
+      security-tools-ref: ${{ github.head_ref || github.ref_name }}
 
   test-trivy-image:
     name: Test Trivy Image Scan
@@ -50,6 +52,7 @@ jobs:
       severity-level: CRITICAL
       use-test-reporter: true
       issue-on-findings: ''
+      security-tools-ref: ${{ github.head_ref || github.ref_name }}
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,3 +68,4 @@ jobs:
       use-test-reporter: true
       baseline: '.checkov.baseline'
       issue-on-findings: ''
+      security-tools-ref: ${{ github.head_ref || github.ref_name }}
