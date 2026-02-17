@@ -1,5 +1,6 @@
 ## Summary of {{ctrf.tool.name}} Security Scan Results
 
+{{#if ctrf.summary.tests }}
 <table>
     <thead>
         <tr>
@@ -49,6 +50,7 @@
         </tr>
     </tbody>
 </table>
+{{/if}}
 
 {{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
 ### All Tests Passed! 🎉

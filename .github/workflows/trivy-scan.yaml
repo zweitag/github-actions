@@ -39,6 +39,11 @@ on:
         required: false
         default: ''
         type: string
+      security-tools-ref:
+        description: 'Internal: Git ref for security-scanning scripts checkout (default: main)'
+        required: false
+        default: 'main'
+        type: string
     secrets:
       GH_TOKEN:
         description: 'GitHub Token for downloading the Trivy DB'
@@ -64,7 +69,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: zweitag/github-actions
-        ref: main
+        ref: ${{ inputs.security-tools-ref }}
         path: _security-tools
         sparse-checkout: security-scanning
 
