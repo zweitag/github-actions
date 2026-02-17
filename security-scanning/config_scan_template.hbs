@@ -50,14 +50,10 @@
         </tr>
     </tbody>
 </table>
-{{else}}
-{{#if (eq ctrf.tool.name "Checkov")}}
-<p>No differences to Baseline found</p>
-{{/if}}
 {{/if}}
 
 {{#if (eq ctrf.summary.passed ctrf.summary.tests)}}
-### All Tests Passed - test! 🎉
+### All Tests Passed! 🎉
 {{else}}
 ## Findings:
 {{#each ctrf.tests}}
