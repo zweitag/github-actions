@@ -1,0 +1,59 @@
+{
+    "failed_checks": [
+        {
+            "file": "/.github/workflows/checkov-scan.yaml",
+            "findings": [
+                {
+                    "resource": "on(Security Scan)",
+                    "check_ids": [
+                        "CKV2_GHA_1"
+                    ]
+                }
+            ]
+        },
+        {
+            "file": "/.github/workflows/deployment-status.yaml",
+            "findings": [
+                {
+                    "resource": "on(deployment-status)",
+                    "check_ids": [
+                        "CKV2_GHA_1"
+                    ]
+                }
+            ]
+        },
+        {
+            "file": "/.github/workflows/global-variables.yaml",
+            "findings": [
+                {
+                    "resource": "on(global-variables)",
+                    "check_ids": [
+                        "CKV2_GHA_1"
+                    ]
+                }
+            ]
+        },
+        {
+            "file": "/.github/workflows/test-security-scan.yaml",
+            "findings": [
+                {
+                    "resource": "on(Test Security Scan Workflows)",
+                    "check_ids": [
+                        "CKV2_GHA_1"
+                    ]
+                }
+            ]
+        },
+        {
+            "file": "/.github/workflows/trivy-scan.yaml",
+            "findings": [
+                {
+                    "resource": "on(Security Scan)",
+                    "check_ids": [
+                        "CKV2_GHA_1"
+                    ]
+                }
+            ]
+        }
+    ]
+}

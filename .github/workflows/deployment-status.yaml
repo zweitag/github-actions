@@ -1,4 +1,4 @@
-name: 'deployment-status'
+name: "deployment-status"
 on: # rebuild any PRs and main branch changes
   pull_request:
   push:
@@ -17,6 +17,10 @@ jobs:
 
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      deployments: write
     steps:
       - uses: actions/checkout@main
       - uses: ./deployment-status/

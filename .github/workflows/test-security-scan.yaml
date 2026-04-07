@@ -1,0 +1,31 @@
+# .github/workflows/test-security-scan.yaml
+name: Test Security Scan Workflows
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/checkov-scan.yaml"
+      - ".github/workflows/test-security-scan.yaml"
+      - "security-scanning/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/checkov-scan.yaml"
+      - ".github/workflows/test-security-scan.yaml"
+      - "security-scanning/**"
+
+jobs:
+  # ==========================================
+  # Checkov Scan Tests
+  # ==========================================
+
+  test-checkov:
+    name: Test Checkov Scan
+    uses: ./.github/workflows/checkov-scan.yaml
+    with:
+      soft-fail-on: CRITICAL
+      use-test-reporter: true
+      baseline: ".checkov.baseline"
+      issue-on-findings: ""
+      security-tools-ref: ${{ github.head_ref || github.ref_name }}
