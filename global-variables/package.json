@@ -7,10 +7,10 @@
     "type": "git",
     "url": "https://github.com/zweitag/github-actions.git"
   },
+  "scripts": {
+    "package": "ncc build -o dist/ src/index.js"
+  },
   "author": "Zweitag GmbH @zweitag",
-  "contributors": [
-    "Tobias Hoge <tbho@tbho.de>"
-  ],
   "keywords": [
     "zweitag",
     "github",
@@ -20,10 +20,13 @@
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/zweitag/global-actions/issues"
+    "url": "https://github.com/zweitag/github-actions/issues"
   },
-  "homepage": "https://github.com/zweitag/global-actions/global-variables#readme",
+  "homepage": "https://github.com/zweitag/github-actions",
   "dependencies": {
-    "@actions/core": "^1.2.6"
+    "@actions/core": "^2.0.1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.4"
   }
 }
