@@ -1,15 +1,26 @@
 version: 2
 updates:
   # Enable version updates for npm
-  - package-ecosystem: 'npm'
+  - package-ecosystem: "npm"
     # Look for `package.json` and `lock` files in the `root` directory
-    directory: '/deployment-status/'
+    directory: "/deployment-status/"
     # Check the npm registry for updates every day (weekdays)
     schedule:
-      interval: 'weekly'
-  - package-ecosystem: 'npm'
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+  - package-ecosystem: "npm"
     # Look for `package.json` and `lock` files in the `root` directory
-    directory: '/global-variables/'
+    directory: "/global-variables/"
     # Check the npm registry for updates every day (weekdays)
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
