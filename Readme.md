@@ -30,20 +30,20 @@ ANOTHER_KEY=VALUE2
 #### with default file:
 
 ```
-- uses: zweitag/github-actions/global-variables@main
+- uses: zweitag/github-actions/global-variables@0cff7f8458250a53e62a8188c3858572aadaa0f2 # main
 ```
 
 #### with custom environment file:
 
 ```
-- uses: zweitag/github-actions/global-variables@main
+- uses: zweitag/github-actions/global-variables@0cff7f8458250a53e62a8188c3858572aadaa0f2 # main
   with:
     file: 'config/.env.development'
 ```
 
 ## trivy-scan
 
-This reusable workflow is part of the Security-Scanning workflows. This workflow is for Security-Scanning with [Trivy](https://github.com/aquasecurity/trivy) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features. 
+This reusable workflow is part of the Security-Scanning workflows. This workflow is for Security-Scanning with [Trivy](https://github.com/aquasecurity/trivy) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features.
 
 It runs Trivy scans (filesystem, image, or configuration), converts the results into a standardized CTRF report, renders a human-friendly summary via Handlebars templates in the job output, and optionally creates or comments on a GitHub Issue when findings cause the scan to fail.
 
@@ -62,7 +62,7 @@ filesystem scan:
 ```yaml
 jobs:
   scan_filesystem:
-    uses: zweitag/github-actions/.github/workflows/trivy-scan.yaml@main
+    uses: zweitag/github-actions/.github/workflows/trivy-scan.yaml@0cff7f8458250a53e62a8188c3858572aadaa0f2 # main
     with:
       scan-type: "filesystem"
       path: "."
@@ -75,7 +75,7 @@ image scan:
 ```yaml
 jobs:
   scan_docker_image:
-    uses: zweitag/github-actions/.github/workflows/trivy-scan.yaml@main
+    uses: zweitag/github-actions/.github/workflows/trivy-scan.yaml@0cff7f8458250a53e62a8188c3858572aadaa0f2 # main
     with:
       scan-type: "image"
       path: "."
@@ -92,7 +92,7 @@ config-scan:
 ```yaml
 jobs:
   scan_configuration:
-    uses: zweitag/github-actions/.github/workflows/trivy-scan.yaml@main
+    uses: zweitag/github-actions/.github/workflows/trivy-scan.yaml@0cff7f8458250a53e62a8188c3858572aadaa0f2 # main
     with:
       scan-type: "config"
       path: "."
@@ -120,7 +120,7 @@ jobs:
 
 ## checkov-scan
 
-This reusable workflow  is part of the Security-Scanning workflows. This workflow is for Security-Scanning with [Checkov](https://github.com/bridgecrewio/checkov) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features. 
+This reusable workflow  is part of the Security-Scanning workflows. This workflow is for Security-Scanning with [Checkov](https://github.com/bridgecrewio/checkov) and provides a cost-effective, reusable security scanning pipeline that works in any repository without relying on paid GitHub Code Scanning features.
 
 It runs Checkov scans , converts the results into a standardized CTRF report, renders a human-friendly summary via Handlebars templates in the job output, and optionally creates or comments on a GitHub Issue when findings cause the scan to fail.
 
@@ -145,7 +145,7 @@ simple scan:
 ```yaml
 jobs:
   checkov_scan:
-    uses: zweitag/github-actions/.github/workflows/security-scan.yaml@main
+    uses: zweitag/github-actions/.github/workflows/security-scan.yaml@0cff7f8458250a53e62a8188c3858572aadaa0f2 # main
     with:
       path: "."
       use-test-reporter: true
@@ -157,7 +157,7 @@ scan with baseline and issue mention:
 ```yaml
 jobs:
   checkov_scan:
-    uses: zweitag/github-actions/.github/workflows/security-scan.yaml@main
+    uses: zweitag/github-actions/.github/workflows/security-scan.yaml@0cff7f8458250a53e62a8188c3858572aadaa0f2 # main
     with:
       path: "./infra"
       baseline: "./.checkov.baseline"
@@ -187,7 +187,7 @@ This workflow provides standardized reports (CTRF), visual summaries, and option
 
 # License
 
-Copyright 2019 Zweitag GmbH
+Copyright 2026 Zweitag GmbH
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

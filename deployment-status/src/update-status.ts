@@ -25,7 +25,7 @@ export interface StatusUpdateData {
 
 export const updateStatus = async (
   status: DeploymentState,
-  data: StatusUpdateData
+  data: StatusUpdateData,
 ): Promise<StatusUpdateData> => {
   const client = github.getOctokit(data.token);
 
