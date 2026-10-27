@@ -4,8 +4,8 @@ import {
   updateStatus,
   DeploymentState,
   DeploymentEnvironment,
-} from "./update-status";
-import { State } from "./constats";
+} from "./update-status.js";
+import { State } from "./constats.js";
 
 async function run() {
   try {

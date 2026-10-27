@@ -2,7 +2,9 @@
   "name": "global-variables",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
+  "packageManager": "pnpm@12.15.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/zweitag/github-actions.git"
@@ -24,9 +26,9 @@
   },
   "homepage": "https://github.com/zweitag/github-actions",
   "dependencies": {
-    "@actions/core": "^2.0.1"
+    "@actions/core": "^3.0.1"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.4"
+    "@vercel/ncc": "^0.45.0"
   }
 }
