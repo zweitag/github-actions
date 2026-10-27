@@ -43,10 +43,10 @@ jobs:
 
     steps:
       - name: checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: checkout security-scanning scripts
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: zweitag/github-actions
           ref: ${{ inputs.security-tools-ref }}
@@ -56,7 +56,7 @@ jobs:
       - name: create output folder
         run: mkdir -p ./scan-results
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.13"
 
@@ -84,7 +84,7 @@ jobs:
 
       - name: Publish Test Report
         if: always() && inputs.use-test-reporter
-        uses: ctrf-io/github-test-reporter@e500b992f936420eb633c91644cf10d4d71df700 # v1
+        uses: ctrf-io/github-test-reporter@dbb08957b5b2af918b39136ab2c5532002c7649b # v1.3.2
         with:
           report-path: "./scan-results/checkov.ctrf.json"
           template-path: "_security-tools/security-scanning/config_scan_template.hbs"
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Create issue/Comment on issue
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const repo = context.repo.repo;
