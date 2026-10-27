@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/zweitag/github-actions",
   "dependencies": {
-    "@actions/core": "^2.0.1"
+    "@actions/core": "^3.0.1"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.4"
