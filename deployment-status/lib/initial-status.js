@@ -1,90 +1,44 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
+import * as core from "@actions/core";
+import * as github from "@actions/github";
+import { updateStatus, } from "./update-status.js";
+import { State } from "./constats.js";
+async function run() {
+    try {
+        const context = github.context;
+        const token = core.getInput("token", { required: true });
+        const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+        const status = core.getInput("initial_status", {
+            required: false,
+        }) || "pending";
+        const environment = core.getInput("environment", {
+            required: false,
+        }) || "production";
+        const ref = core.getInput("ref", { required: false }) || context.ref;
+        const environmentUrl = core.getInput("environment_url", {
+            required: false,
+        });
+        const statusUpdateData = await updateStatus(status, {
+            environment: environment,
+            target_url: logUrl,
+            environment_url: environmentUrl,
+            owner: context.repo.owner,
+            ref: ref,
+            repo: context.repo.repo,
+            sha: context.sha,
+            token: token,
+        });
+        core.saveState(State.StatusUpdateData, statusUpdateData);
+        core.setOutput("deployment_id", statusUpdateData.deployment_id);
     }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(require("@actions/core"));
-const github = __importStar(require("@actions/github"));
-const update_status_1 = require("./update-status");
-const constats_1 = require("./constats");
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const context = github.context;
-            const token = core.getInput("token", { required: true });
-            const logUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const status = core.getInput("initial_status", {
-                required: false,
-            }) || "pending";
-            const environment = core.getInput("environment", {
-                required: false,
-            }) || "production";
-            const ref = core.getInput("ref", { required: false }) || context.ref;
-            const environmentUrl = core.getInput("environment_url", {
-                required: false,
-            });
-            const statusUpdateData = yield (0, update_status_1.updateStatus)(status, {
-                environment: environment,
-                target_url: logUrl,
-                environment_url: environmentUrl,
-                owner: context.repo.owner,
-                ref: ref,
-                repo: context.repo.repo,
-                sha: context.sha,
-                token: token,
-            });
-            core.saveState(constats_1.State.StatusUpdateData, statusUpdateData);
-            core.setOutput("deployment_id", statusUpdateData.deployment_id);
+    catch (err) {
+        if (err instanceof Error) {
+            core.error(err);
+            core.setFailed(err.message);
         }
-        catch (err) {
-            if (err instanceof Error) {
-                core.error(err);
-                core.setFailed(err.message);
-            }
-            else {
-                core.error(err.toString());
-                core.setFailed(err.toString());
-            }
+        else {
+            core.error(err.toString());
+            core.setFailed(err.toString());
         }
-    });
+    }
 }
 run();

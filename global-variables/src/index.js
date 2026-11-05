@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
-const core = require('@actions/core');
-const fs = require('fs');
+import * as core from '@actions/core';
+import fs from 'node:fs';
 
 try {
   const file_name = core.getInput('file');
